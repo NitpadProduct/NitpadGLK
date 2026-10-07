@@ -1,0 +1,3114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nitpad.ГЛК — Электронные таблицы</title>
+<style>
+  :root{
+    --bg:#f3f3f3; --surface:#fff; --border:#d4d4d4; --border-strong:#b8b8b8;
+    --text:#212121; --text2:#616161; --accent:#217346; --accent-dark:#185c37;
+    --accent-light:#e6f2ec; --select:#e6f2ec; --hover:#f5f5f5;
+    --error:#c62828; --radius:3px;
+    --font:'Segoe UI',Tahoma,sans-serif; --mono:Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+  body{
+    font-family:var(--font); font-size:13px; color:var(--text);
+    background:var(--bg); display:flex; flex-direction:column;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font-family:var(--font); cursor:pointer}
+  input{font-family:var(--font)}
+
+  /* ═══════════ СТАРТОВЫЙ ЭКРАН ═══════════ */
+  #startScreen{
+    position:fixed; inset:0; z-index:5000;
+    background:linear-gradient(135deg, #185c37 0%, #217346 45%, #2d8f5b 100%);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:24px; overflow:auto;
+    animation:fadeIn .35s ease;
+  }
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+  .start-logo{
+    display:flex; align-items:center; gap:14px; margin-bottom:8px;
+    animation:slideUp .45s ease;
+  }
+  .start-logo-icon{
+    width:64px; height:64px; background:#fff; color:var(--accent);
+    border-radius:14px; display:flex; align-items:center; justify-content:center;
+    font-size:36px; font-weight:800; box-shadow:0 8px 24px rgba(0,0,0,.25);
+  }
+  .start-logo-text{
+    color:#fff; font-size:38px; font-weight:700; letter-spacing:-1px;
+  }
+  .start-logo-text span{color:#a4d4b8; font-weight:400}
+
+  .start-tagline{
+    color:rgba(255,255,255,.85); font-size:14.5px; margin-bottom:48px;
+    text-align:center; max-width:440px; line-height:1.55;
+    animation:slideUp .5s ease;
+  }
+
+  .start-title{
+    color:#fff; font-size:16px; font-weight:600; margin-bottom:20px;
+    text-transform:uppercase; letter-spacing:2px; opacity:.85;
+    animation:slideUp .55s ease;
+  }
+
+  .start-choices{
+    display:flex; gap:24px; flex-wrap:wrap; justify-content:center;
+    animation:slideUp .6s ease;
+  }
+  .start-choice{
+    background:#fff; border:none; border-radius:18px; padding:28px 24px;
+    width:240px; min-height:240px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:14px;
+    box-shadow:0 12px 40px rgba(0,0,0,.22);
+    transition:transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .22s;
+    position:relative; overflow:hidden;
+  }
+  .start-choice::before{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(135deg, transparent 60%, rgba(33,115,70,.08));
+    pointer-events:none;
+  }
+  .start-choice:hover{
+    transform:translateY(-6px) scale(1.02);
+    box-shadow:0 18px 50px rgba(0,0,0,.32);
+  }
+  .start-choice:active{transform:translateY(-2px) scale(.99)}
+
+  .start-choice .icon{
+    font-size:64px; line-height:1;
+    filter:drop-shadow(0 4px 12px rgba(0,0,0,.12));
+  }
+  .start-choice .name{
+    font-size:20px; font-weight:700; color:var(--accent-dark);
+  }
+  .start-choice .desc{
+    font-size:12.5px; color:var(--text2); line-height:1.5;
+  }
+  .start-choice .badge{
+    position:absolute; top:12px; right:12px;
+    background:var(--accent); color:#fff; font-size:10px; font-weight:600;
+    padding:3px 8px; border-radius:10px; letter-spacing:.5px;
+  }
+
+  .start-choice.desktop .icon{color:#217346}
+  .start-choice.mobile .icon{color:#217346}
+
+  .start-footer{
+    margin-top:48px; color:rgba(255,255,255,.65); font-size:11.5px;
+    text-align:center; line-height:1.6;
+    animation:slideUp .65s ease;
+  }
+  .start-footer a{color:#a4d4b8; text-decoration:none}
+
+  .remember-check{
+    display:flex; align-items:center; gap:8px; margin-top:32px;
+    color:rgba(255,255,255,.85); font-size:13px; cursor:pointer;
+    user-select:none; animation:slideUp .7s ease;
+  }
+  .remember-check input{
+    width:18px; height:18px; accent-color:#a4d4b8; cursor:pointer;
+  }
+
+  /* ═══════════ ПЕРЕКЛЮЧАТЕЛЬ ВЕРСИЙ ═══════════ */
+  .switch-version{
+    position:fixed; right:12px; top:12px; z-index:4000;
+    background:rgba(255,255,255,.95); border:1px solid var(--border);
+    border-radius:20px; padding:6px 12px; cursor:pointer;
+    font-size:12px; color:var(--text2);
+    box-shadow:0 4px 12px rgba(0,0,0,.12);
+    display:flex; align-items:center; gap:6px;
+    transition:.2s; backdrop-filter:blur(8px);
+  }
+  .switch-version:hover{background:#fff; color:var(--accent)}
+  .switch-version svg{width:14px;height:14px}
+
+  /* ═══════════ DESKTOP APP (скрыт изначально) ═══════════ */
+  #desktopApp{display:none; flex-direction:column; height:100%}
+  #desktopApp.on{display:flex}
+
+  /* Меню-бар */
+  .menubar{
+    background:var(--accent); color:#fff; display:flex; align-items:center;
+    padding:0 8px; height:32px; flex-shrink:0; gap:2px;
+  }
+  .menubar .brand{font-weight:600;font-size:14px;padding:0 14px 0 6px;letter-spacing:.3px}
+  .menubar .brand span{color:#a4d4b8;font-weight:400}
+  .menubar .m-item{padding:6px 10px;border-radius:var(--radius);cursor:pointer;font-size:12.5px}
+  .menubar .m-item:hover{background:rgba(255,255,255,.15)}
+  .menubar .spacer{flex:1}
+  .menubar .doc-name{font-size:12px;opacity:.85;padding-right:12px}
+
+  /* Лента */
+  .ribbon{
+    background:var(--surface); border-bottom:1px solid var(--border);
+    padding:4px 8px; display:flex; align-items:stretch;
+    flex-shrink:0; overflow-x:auto; height:62px;
+  }
+  .ribbon-group{
+    display:flex; align-items:center; gap:2px; padding:0 8px;
+    border-right:1px solid #e0e0e0; position:relative;
+  }
+  .ribbon-group:last-child{border-right:none}
+  .ribbon-group::after{
+    content:attr(data-label); position:absolute; bottom:-1px; left:50%;
+    transform:translateX(-50%); font-size:9.5px; color:#9e9e9e; white-space:nowrap;
+  }
+  .rb{
+    background:transparent; border:1px solid transparent; color:var(--text);
+    min-width:26px; height:26px; padding:0 6px; border-radius:var(--radius);
+    cursor:pointer; font-size:13px; font-family:var(--font);
+    display:inline-flex; align-items:center; justify-content:center; gap:3px;
+    transition:background .1s, border-color .1s;
+  }
+  .rb:hover{background:var(--hover); border-color:var(--border)}
+  .rb:active{background:#e0e0e0}
+  .rb.active{background:var(--accent-light); border-color:var(--accent); color:var(--accent-dark)}
+  .rb.wide{padding:0 10px; font-size:12px}
+  .rb b,.rb i,.rb u{font-size:13px}
+  select.rb{padding:0 4px;height:24px;min-width:90px;font-size:12px;background:var(--surface);cursor:pointer}
+
+  /* Строка формул */
+  .formula-bar{
+    background:var(--surface); border-bottom:1px solid var(--border);
+    display:flex; align-items:stretch; flex-shrink:0; height:28px;
+  }
+  .name-box{display:flex;align-items:center;padding:0 6px;border-right:1px solid var(--border);min-width:110px}
+  .name-box input{
+    width:100%;border:1px solid transparent;outline:none;background:transparent;
+    font-family:var(--font);font-size:12.5px;padding:2px 4px;border-radius:2px;
+    color:var(--text);text-align:center;font-weight:500;
+  }
+  .name-box input:focus{border-color:var(--accent);background:#fff}
+  .fx-btn{
+    display:flex;align-items:center;padding:0 8px;color:var(--text2);
+    font-style:italic;font-family:Georgia,serif;font-size:14px;
+    border-right:1px solid var(--border);cursor:pointer;
+  }
+  .fx-btn:hover{background:var(--hover)}
+  .formula-input{
+    flex:1;border:none;outline:none;padding:0 8px;font-size:12.5px;
+    font-family:var(--mono);background:transparent;color:var(--text);
+  }
+
+  /* Таблица */
+  .sheet-wrap{flex:1;overflow:auto;position:relative;background:var(--surface)}
+  .sheet-inner{position:relative;display:inline-block;min-width:100%}
+  table{border-collapse:separate;border-spacing:0;table-layout:fixed}
+  col{width:100px}
+  thead th{
+    background:#f5f5f5;color:var(--text2);font-weight:500;font-size:11.5px;
+    text-align:center;height:22px;padding:0;position:sticky;top:0;z-index:3;
+    border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+    user-select:none;cursor:pointer;position:relative;
+  }
+  thead th:hover{background:#ebebeb}
+  thead th.corner{left:0;z-index:5;width:42px;background:#e8e8e8;cursor:default}
+  tbody th.row-h{
+    background:#f5f5f5;color:var(--text2);font-weight:500;font-size:11.5px;
+    text-align:center;height:24px;padding:0;position:sticky;left:0;z-index:2;
+    border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+    cursor:pointer;user-select:none;width:42px;position:relative;
+  }
+  tbody th.row-h:hover{background:#ebebeb}
+  tbody th.row-h.highlight, thead th.highlight{background:#d6e9dd;color:var(--accent-dark)}
+  td{
+    height:24px;padding:0 5px;font-size:12.5px;background:var(--surface);
+    border-right:1px solid #e8e8e8;border-bottom:1px solid #e8e8e8;
+    overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+    cursor:cell;vertical-align:middle;position:relative;
+  }
+  td:hover{background:#fafafa}
+  td.in-sel{background:var(--select) !important}
+  td.sel-anchor{box-shadow:inset 0 0 0 2px var(--accent);z-index:2}
+  td.editing{
+    background:#fff !important;box-shadow:inset 0 0 0 2px var(--accent);
+    z-index:3;overflow:visible;cursor:text;padding:0 4px;white-space:pre;text-align:left !important;
+  }
+  td.num{text-align:right}
+  td.err{color:var(--error);font-weight:500}
+  td.fml{color:var(--accent-dark)}
+  td.bold{font-weight:700}
+  td.italic{font-style:italic}
+  td.underline{text-decoration:underline}
+  td.center{text-align:center}
+  td.right{text-align:right}
+  td.left{text-align:left}
+
+  .fill-handle{
+    position:absolute;width:7px;height:7px;background:var(--accent);
+    border:1px solid #fff;cursor:crosshair;z-index:10;display:none;
+    box-shadow:0 0 0 1px var(--accent);
+  }
+  .fill-handle.on{display:block}
+  .fill-preview{
+    position:absolute;border:1px dashed var(--accent);pointer-events:none;
+    background:rgba(33,115,70,.06);z-index:9;display:none;
+  }
+  .col-resizer{position:absolute;right:-3px;top:0;width:6px;height:100%;cursor:col-resize;z-index:6}
+  .row-resizer{position:absolute;bottom:-3px;left:0;height:6px;width:100%;cursor:row-resize;z-index:6}
+
+  /* Диаграммы */
+  .chart-box{
+    position:absolute; background:#fff; border:1px solid var(--border-strong);
+    border-radius:6px; box-shadow:0 4px 14px rgba(0,0,0,.12);
+    z-index:50; overflow:hidden; min-width:200px; min-height:150px;
+    display:flex; flex-direction:column;
+  }
+  .chart-box.dragging{box-shadow:0 10px 30px rgba(0,0,0,.25); opacity:.95}
+  .chart-header{
+    background:linear-gradient(180deg,#f8f8f8,#f0f0f0);
+    border-bottom:1px solid var(--border);
+    padding:4px 10px; font-size:11.5px; color:var(--text2);
+    display:flex; align-items:center; justify-content:space-between;
+    cursor:move; user-select:none; flex-shrink:0;
+  }
+  .chart-header .chart-title{font-weight:600; color:var(--accent-dark)}
+  .chart-header .chart-close{
+    width:18px;height:18px;border-radius:50%;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;color:#888;
+  }
+  .chart-header .chart-close:hover{background:#ffd6d6;color:var(--error)}
+  .chart-body{flex:1; position:relative; overflow:hidden}
+  .chart-body canvas{display:block; width:100%; height:100%}
+  .chart-resizer{
+    position:absolute; right:0; bottom:0; width:14px; height:14px;
+    cursor:nwse-resize; z-index:2;
+  }
+  .chart-resizer::before{
+    content:''; position:absolute; right:3px; bottom:3px;
+    width:8px; height:8px; border-right:2px solid #999; border-bottom:2px solid #999;
+  }
+
+  /* Вкладки */
+  .tabs-bar{
+    background:#f5f5f5;border-top:1px solid var(--border);
+    display:flex;align-items:center;height:30px;flex-shrink:0;padding:0 6px;gap:2px;
+  }
+  .tab-nav{
+    width:22px;height:22px;border:1px solid var(--border);background:#fff;
+    border-radius:2px;cursor:pointer;font-size:11px;color:var(--text2);
+  }
+  .tab-nav:hover{background:var(--hover)}
+  .tab{
+    padding:0 14px;height:24px;display:inline-flex;align-items:center;
+    background:#e8e8e8;border:1px solid var(--border);border-bottom:none;
+    border-radius:3px 3px 0 0;font-size:12px;cursor:pointer;margin-top:6px;
+    color:var(--text2);position:relative;
+  }
+  .tab.active{background:#fff;color:var(--accent-dark);font-weight:600;border-bottom:1px solid #fff;margin-bottom:-1px}
+  .tab .x{margin-left:8px;opacity:.5;font-size:13px;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center}
+  .tab .x:hover{background:#d0d0d0;opacity:1}
+  .tab-add{
+    width:22px;height:22px;border-radius:50%;background:transparent;
+    border:none;cursor:pointer;font-size:16px;color:var(--text2);
+    display:flex;align-items:center;justify-content:center;margin-left:4px;
+  }
+
+  /* Статус-бар */
+  .statusbar{
+    background:var(--accent);color:#fff;display:flex;align-items:center;
+    height:22px;padding:0 12px;font-size:11.5px;gap:16px;flex-shrink:0;
+  }
+  .statusbar .grow{flex:1}
+  .statusbar .stat{opacity:.95}
+
+  /* Контекстное меню */
+  .ctx-menu{
+    position:fixed;background:#fff;border:1px solid var(--border-strong);
+    border-radius:4px;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:4px 0;
+    font-size:12.5px;z-index:1000;min-width:210px;display:none;
+  }
+  .ctx-menu.on{display:block}
+  .ctx-menu .it{
+    padding:6px 14px 6px 30px;cursor:pointer;white-space:nowrap;
+    display:flex;justify-content:space-between;gap:20px;
+  }
+  .ctx-menu .it:hover{background:var(--accent-light)}
+  .ctx-menu .it.disabled{color:#bdbdbd;cursor:default}
+  .ctx-menu .it.disabled:hover{background:transparent}
+  .ctx-menu .it .kbd{color:#9e9e9e;font-size:11px}
+  .ctx-menu .sep{height:1px;background:#e0e0e0;margin:4px 0}
+
+  /* Модалка */
+  .modal-bg{
+    position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:2000;
+    display:none;align-items:center;justify-content:center;padding:16px;
+  }
+  .modal-bg.on{display:flex}
+  .modal{
+    background:#fff;border-radius:6px;padding:20px;min-width:340px;max-width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,.25);max-height:90vh;overflow:auto;
+  }
+  .modal h3{font-size:15px;margin-bottom:14px;color:var(--accent-dark)}
+  .modal .field{margin-bottom:12px}
+  .modal label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px}
+  .modal input,.modal select{
+    width:100%;padding:6px 10px;font-size:13px;font-family:var(--font);
+    border:1px solid var(--border-strong);border-radius:3px;outline:none;
+  }
+  .modal input:focus,.modal select:focus{border-color:var(--accent)}
+  .modal .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
+  .modal .actions button{
+    padding:6px 16px;font-size:12.5px;border-radius:3px;cursor:pointer;
+    border:1px solid var(--border-strong);background:#fff;font-family:var(--font);
+  }
+  .modal .actions button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .modal .actions button.primary:hover{background:var(--accent-dark)}
+  .chart-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+  .chart-opt{
+    border:2px solid var(--border);border-radius:6px;padding:12px;cursor:pointer;
+    text-align:center;background:#fafafa;
+  }
+  .chart-opt.selected{border-color:var(--accent);background:var(--accent-light)}
+  .chart-opt .ico{font-size:28px;margin-bottom:4px;display:block}
+  .chart-opt .lbl{font-size:12px;font-weight:600}
+  .chart-opt .sub{font-size:10.5px;color:var(--text2);margin-top:2px}
+
+  /* Toast */
+  .toast{
+    position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#323232;color:#fff;padding:8px 18px;border-radius:4px;
+    font-size:12.5px;opacity:0;transition:.25s;pointer-events:none;z-index:3000;
+  }
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* Scrollbars */
+  ::-webkit-scrollbar{width:14px;height:14px}
+  ::-webkit-scrollbar-track{background:#f0f0f0}
+  ::-webkit-scrollbar-thumb{background:#c1c1c1;border:3px solid #f0f0f0;border-radius:7px}
+  ::-webkit-scrollbar-thumb:hover{background:#a8a8a8}
+
+  /* ═══════════════════════════════════════════════════════════
+     ═══════════ MOBILE APP ═══════════
+     ═══════════════════════════════════════════════════════════ */
+  #mobileApp{display:none; flex-direction:column; height:100%; background:#fff; touch-action:manipulation}
+  #mobileApp.on{display:flex}
+
+  /* Top bar */
+  .m-topbar{
+    background:var(--accent); color:#fff; display:flex; align-items:center;
+    height:52px; padding:0 6px; gap:4px; flex-shrink:0;
+    box-shadow:0 2px 8px rgba(0,0,0,.15); z-index:20;
+    padding-top:env(safe-area-inset-top, 0);
+    height:calc(52px + env(safe-area-inset-top, 0));
+  }
+  .m-btn{
+    width:44px; height:44px; border:none; background:transparent; color:#fff;
+    border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    font-size:20px; transition:background .15s; flex-shrink:0;
+  }
+  .m-btn:active{background:rgba(255,255,255,.2)}
+  .m-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .m-title{
+    flex:1; font-size:15px; font-weight:600; text-align:center;
+    overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+    letter-spacing:.3px;
+  }
+  .m-title span{color:#a4d4b8; font-weight:400}
+
+  /* Formula bar mobile */
+  .m-formula-bar{
+    background:#fff; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:6px; padding:6px 8px;
+    flex-shrink:0; z-index:15;
+  }
+  .m-cell-ref{
+    background:var(--accent-light); color:var(--accent-dark);
+    font-weight:600; padding:6px 10px; border-radius:6px;
+    font-size:12px; font-family:var(--mono); min-width:52px; text-align:center;
+  }
+  .m-formula-input{
+    flex:1; padding:8px 10px; font-size:13px; font-family:var(--mono);
+    border:1px solid var(--border); border-radius:6px; outline:none;
+    background:#f8f8f8; -webkit-appearance:none; color:var(--text);
+  }
+  .m-formula-input:focus{
+    border-color:var(--accent); background:#fff;
+    box-shadow:0 0 0 3px rgba(33,115,70,.12);
+  }
+  .m-fx{
+    background:transparent; border:none; font-size:15px; font-style:italic;
+    font-family:Georgia,serif; color:var(--accent); font-weight:600;
+    padding:0 6px; cursor:pointer;
+  }
+
+  /* Grid area */
+  .m-grid-wrap{
+    flex:1; overflow:auto; position:relative; background:#fff;
+    -webkit-overflow-scrolling:touch;
+  }
+  .m-grid-wrap table{
+    border-collapse:separate; border-spacing:0;
+  }
+  .m-grid-wrap thead th{
+    background:#f5f5f5; color:var(--text2); font-weight:600; font-size:11px;
+    text-align:center; height:30px; padding:0; position:sticky; top:0; z-index:3;
+    border-right:1px solid var(--border); border-bottom:1px solid var(--border);
+    min-width:90px; width:90px;
+  }
+  .m-grid-wrap thead th.corner{
+    left:0; z-index:5; width:40px; min-width:40px; background:#e8e8e8;
+  }
+  .m-grid-wrap tbody th.row-h{
+    background:#f5f5f5; color:var(--text2); font-weight:600; font-size:11px;
+    text-align:center; height:44px; padding:0; position:sticky; left:0; z-index:2;
+    border-right:1px solid var(--border); border-bottom:1px solid var(--border);
+    width:40px; min-width:40px;
+  }
+  .m-grid-wrap td{
+    height:44px; padding:0 8px; font-size:14px; background:#fff;
+    border-right:1px solid #ececec; border-bottom:1px solid #ececec;
+    overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+    vertical-align:middle; position:relative; min-width:90px; max-width:90px; width:90px;
+  }
+  .m-grid-wrap td.in-sel{background:var(--select) !important}
+  .m-grid-wrap td.sel-anchor{
+    background:var(--select) !important;
+    box-shadow:inset 0 0 0 2px var(--accent);
+  }
+  .m-grid-wrap td.editing{
+    background:#fff !important; box-shadow:inset 0 0 0 2px var(--accent);
+    z-index:3; overflow:visible; padding:0 6px; white-space:pre;
+    text-align:left !important; font-size:14px;
+  }
+  .m-grid-wrap td.num{text-align:right}
+  .m-grid-wrap td.err{color:var(--error); font-weight:500}
+  .m-grid-wrap td.fml{color:var(--accent-dark)}
+  .m-grid-wrap td.bold{font-weight:700}
+  .m-grid-wrap td.italic{font-style:italic}
+  .m-grid-wrap td.underline{text-decoration:underline}
+  .m-grid-wrap td.center{text-align:center}
+  .m-grid-wrap td.right{text-align:right}
+  .m-grid-wrap td.left{text-align:left}
+
+  /* Mobile bottom bar */
+  .m-bottombar{
+    background:#fff; border-top:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-around;
+    height:56px; flex-shrink:0; padding:0 2px;
+    padding-bottom:env(safe-area-inset-bottom, 0);
+    height:calc(56px + env(safe-area-inset-bottom, 0));
+    box-shadow:0 -2px 8px rgba(0,0,0,.05); z-index:20;
+  }
+  .m-bb{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:2px; padding:4px 2px; border:none; background:transparent;
+    color:var(--text2); cursor:pointer; font-size:10px;
+    border-radius:8px; transition:background .15s; min-height:48px;
+  }
+  .m-bb:active{background:#f0f0f0}
+  .m-bb.active{color:var(--accent); background:var(--accent-light)}
+  .m-bb .icon{font-size:20px; line-height:1}
+  .m-bb .lbl{font-weight:600}
+
+  /* Mobile sheets bar */
+  .m-sheets{
+    background:#f5f5f5; border-top:1px solid var(--border);
+    display:flex; align-items:center; padding:6px 8px; gap:6px;
+    flex-shrink:0; overflow-x:auto; -webkit-overflow-scrolling:touch;
+  }
+  .m-sheets::-webkit-scrollbar{display:none}
+  .m-tab{
+    padding:6px 14px; background:#e0e0e0; border-radius:14px;
+    font-size:12.5px; cursor:pointer; white-space:nowrap; color:var(--text2);
+    display:flex; align-items:center; gap:6px; flex-shrink:0;
+  }
+  .m-tab.active{background:var(--accent); color:#fff; font-weight:600}
+  .m-tab .x{opacity:.6; font-size:14px; padding:0 2px}
+  .m-tab-add{
+    width:32px; height:32px; border-radius:50%; border:1px dashed var(--border-strong);
+    background:transparent; color:var(--text2); font-size:18px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .m-tab-add:active{background:#e0e0e0}
+
+  /* Mobile action sheet */
+  .m-sheet-bg{
+    position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:3000;
+    display:none; align-items:flex-end; animation:fadeIn .2s;
+  }
+  .m-sheet-bg.on{display:flex}
+  @keyframes slideUpSheet{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .m-sheet{
+    background:#fff; width:100%; border-radius:16px 16px 0 0;
+    padding:8px 0 max(16px, env(safe-area-inset-bottom));
+    animation:slideUpSheet .28s cubic-bezier(.2,.9,.3,1);
+    max-height:85vh; overflow:auto;
+  }
+  .m-sheet-handle{
+    width:40px; height:4px; background:#ccc; border-radius:2px;
+    margin:8px auto 12px;
+  }
+  .m-sheet-title{
+    font-size:12px; font-weight:600; color:var(--text2); text-transform:uppercase;
+    letter-spacing:.8px; padding:4px 20px 8px;
+  }
+  .m-sheet-item{
+    display:flex; align-items:center; gap:14px; padding:14px 20px;
+    cursor:pointer; font-size:15px; color:var(--text);
+    border-bottom:1px solid #f0f0f0;
+  }
+  .m-sheet-item:last-child{border-bottom:none}
+  .m-sheet-item:active{background:#f5f5f5}
+  .m-sheet-item .mi-icon{
+    font-size:22px; width:28px; text-align:center; flex-shrink:0;
+  }
+  .m-sheet-item .mi-label{flex:1}
+  .m-sheet-item .mi-sub{font-size:12px; color:var(--text2); margin-top:2px}
+  .m-sheet-item.danger{color:var(--error)}
+  .m-sheet-item.danger .mi-icon{color:var(--error)}
+
+  /* Mobile style bar (when style sheet opened) */
+  .m-style-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:12px 16px;
+  }
+  .m-style-btn{
+    padding:12px 4px; border-radius:8px; border:1px solid var(--border);
+    background:#fff; font-size:18px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    color:var(--text);
+  }
+  .m-style-btn:active{background:var(--accent-light)}
+  .m-style-btn .lbl{font-size:10.5px; color:var(--text2); font-weight:600}
+  .m-style-btn.active{background:var(--accent-light); border-color:var(--accent); color:var(--accent-dark)}
+
+  /* Mobile editing overlay */
+  .m-edit-overlay{
+    position:fixed; left:0; right:0; bottom:0; background:#fff;
+    border-top:1px solid var(--border); padding:10px 12px;
+    box-shadow:0 -6px 24px rgba(0,0,0,.15); z-index:2500;
+    display:none; align-items:center; gap:8px;
+    padding-bottom:max(10px, env(safe-area-inset-bottom));
+    animation:slideUpSheet .22s ease;
+  }
+  .m-edit-overlay.on{display:flex}
+  .m-edit-input{
+    flex:1; padding:12px 14px; font-size:15px; font-family:var(--mono);
+    border:2px solid var(--accent); border-radius:8px; outline:none;
+    background:#fff; color:var(--text); -webkit-appearance:none;
+  }
+  .m-edit-btn{
+    padding:12px 16px; border-radius:8px; border:none; font-size:14px;
+    font-weight:600; cursor:pointer;
+  }
+  .m-edit-btn.cancel{background:#f0f0f0; color:var(--text)}
+  .m-edit-btn.ok{background:var(--accent); color:#fff}
+
+  /* Mobile chart hint */
+  .m-chart-box{
+    position:absolute; background:#fff; border:1px solid var(--border-strong);
+    border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,.15);
+    z-index:50; overflow:hidden; display:flex; flex-direction:column;
+  }
+  .m-chart-header{
+    background:#f5f5f5; padding:6px 10px; font-size:11.5px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--border);
+  }
+  .m-chart-header .close{
+    width:24px; height:24px; display:flex; align-items:center; justify-content:center;
+    font-size:16px; color:var(--text2);
+  }
+  .m-chart-body{flex:1; position:relative; overflow:hidden}
+  .m-chart-body canvas{display:block; width:100%; height:100%}
+
+  /* Mobile print/CSV options */
+  .m-section-title{
+    font-size:11px; font-weight:700; color:var(--accent-dark);
+    text-transform:uppercase; letter-spacing:1px; padding:12px 20px 6px;
+  }
+
+  /* ═══════════ ПЕЧАТЬ ═══════════ */
+  @media print {
+    body { overflow: visible !important; height: auto !important; display: block !important; background: #fff !important; }
+    #startScreen, .switch-version,
+    .menubar, .ribbon, .formula-bar, .tabs-bar, .statusbar,
+    .m-topbar, .m-formula-bar, .m-bottombar, .m-sheets,
+    .fill-handle, .fill-preview, .ctx-menu, .modal-bg, .toast,
+    .chart-header .chart-close, .col-resizer, .row-resizer,
+    .m-sheet-bg, .m-edit-overlay { display: none !important; }
+    .sheet-wrap, .m-grid-wrap { overflow: visible !important; height: auto !important; }
+    .sheet-inner { display: block !important; }
+    table { border-collapse: collapse !important; width: auto !important; }
+    th, td {
+      border: 1px solid #999 !important;
+      position: static !important;
+      color: #000 !important;
+      background: #fff !important;
+    }
+    thead th, tbody th.row-h { background: #f0f0f0 !important; }
+    td.in-sel, td.sel-anchor { background: #fff !important; box-shadow: none !important; }
+    .chart-box, .m-chart-box { box-shadow: none !important; border: 1px solid #999 !important; }
+    @page { margin: 10mm; }
+  }
+
+  /* Адаптив */
+  @media (max-width: 620px){
+    .start-logo-text{font-size:28px}
+    .start-logo-icon{width:52px; height:52px; font-size:30px}
+    .start-tagline{font-size:13px; margin-bottom:32px}
+    .start-choices{flex-direction:column; gap:16px}
+    .start-choice{width:100%; max-width:340px; min-height:auto; padding:20px; flex-direction:row; text-align:left; gap:16px}
+    .start-choice .icon{font-size:44px}
+    .start-choice .name{font-size:17px}
+    .start-choice .desc{font-size:12px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ СТАРТОВЫЙ ЭКРАН ═══════════ -->
+<div id="startScreen">
+  <div class="start-logo">
+    <div class="start-logo-icon">N</div>
+    <div class="start-logo-text">Nitpad<span>.ГЛК</span></div>
+  </div>
+  <div class="start-tagline">
+    Электронные таблицы с формулами, диаграммами, печатью и автосохранением.<br>
+    Работает прямо в браузере — без установки и без интернета.
+  </div>
+
+  <div class="start-title">Выберите версию</div>
+
+  <div class="start-choices">
+    <button class="start-choice desktop" data-mode="desktop">
+      <span class="badge">ПК</span>
+      <div class="icon">🖥️</div>
+      <div class="name">Компьютерная версия</div>
+      <div class="desc">Лента как в Excel, меню, полный набор инструментов. Для большого экрана и мыши.</div>
+    </button>
+
+    <button class="start-choice mobile" data-mode="mobile">
+      <span class="badge">МОБ</span>
+      <div class="icon">📱</div>
+      <div class="name">Мобильная версия</div>
+      <div class="desc">Крупные кнопки, тач-управление, вкладки внизу. Для телефона и планшета.</div>
+    </button>
+  </div>
+
+  <label class="remember-check">
+    <input type="checkbox" id="rememberChoice">
+    <span>Запомнить мой выбор</span>
+  </label>
+
+  <div class="start-footer">
+    Данные сохраняются в браузере (localStorage).<br>
+    Можно экспортировать в CSV и JSON.
+  </div>
+</div>
+
+<!-- ═══════════ DESKTOP APP ═══════════ -->
+<div id="desktopApp">
+  <!-- Меню-бар -->
+  <div class="menubar">
+    <div class="brand">Nitpad<span>.ГЛК</span></div>
+    <div class="m-item" data-menu="file">Файл</div>
+    <div class="m-item" data-menu="edit">Правка</div>
+    <div class="m-item" data-menu="view">Вид</div>
+    <div class="m-item" data-menu="insert">Вставка</div>
+    <div class="m-item" data-menu="format">Формат</div>
+    <div class="m-item" data-menu="data">Данные</div>
+    <div class="spacer"></div>
+    <div class="doc-name" id="docName">Книга1 — Nitpad.ГЛК</div>
+  </div>
+
+  <!-- Лента -->
+  <div class="ribbon">
+    <div class="ribbon-group" data-label="Буфер">
+      <button class="rb" id="rb-paste" title="Вставить (Ctrl+V)">📋</button>
+      <button class="rb" id="rb-cut" title="Вырезать (Ctrl+X)">✂️</button>
+      <button class="rb" id="rb-copy" title="Копировать (Ctrl+C)">📄</button>
+    </div>
+    <div class="ribbon-group" data-label="Шрифт">
+      <select class="rb" id="rb-font" style="min-width:110px">
+        <option>Segoe UI</option><option>Arial</option><option>Times New Roman</option>
+        <option>Consolas</option><option>Calibri</option><option>Verdana</option>
+      </select>
+      <select class="rb" id="rb-size" style="min-width:50px">
+        <option>8</option><option>9</option><option>10</option><option>11</option>
+        <option selected>12</option><option>14</option><option>16</option>
+        <option>18</option><option>20</option><option>24</option><option>36</option>
+      </select>
+      <button class="rb" id="rb-bold" title="Жирный"><b>Ж</b></button>
+      <button class="rb" id="rb-italic" title="Курсив"><i>К</i></button>
+      <button class="rb" id="rb-underline" title="Подчёркнутый"><u>Ч</u></button>
+      <button class="rb" id="rb-color" title="Цвет текста">A<span style="color:#c62828;font-weight:700">▬</span></button>
+      <button class="rb" id="rb-bg" title="Цвет заливки">🪣</button>
+    </div>
+    <div class="ribbon-group" data-label="Выравнивание">
+      <button class="rb" id="rb-al" title="По левому краю">⬅</button>
+      <button class="rb" id="rb-ac" title="По центру">⬌</button>
+      <button class="rb" id="rb-ar" title="По правому краю">➡</button>
+    </div>
+    <div class="ribbon-group" data-label="Число">
+      <select class="rb" id="rb-numfmt" style="min-width:110px">
+        <option value="general">Общий</option>
+        <option value="number">Числовой</option>
+        <option value="currency">Денежный ₽</option>
+        <option value="percent">Процентный</option>
+        <option value="text">Текстовый</option>
+      </select>
+      <button class="rb" id="rb-dec+" title="Разрядность +">.00+</button>
+      <button class="rb" id="rb-dec-" title="Разрядность −">.00−</button>
+    </div>
+    <div class="ribbon-group" data-label="Ячейки">
+      <button class="rb wide" id="rb-sum" title="Автосумма">Σ Сумма</button>
+      <button class="rb" id="rb-fx" title="Функция">fx</button>
+      <button class="rb" id="rb-insert-row">+Строка</button>
+      <button class="rb" id="rb-insert-col">+Столбец</button>
+      <button class="rb" id="rb-del-row">−Строка</button>
+      <button class="rb" id="rb-del-col">−Столбец</button>
+    </div>
+    <div class="ribbon-group" data-label="Диаграммы">
+      <button class="rb wide" id="rb-chart-bar" title="Столбчатая">📊 Столбч.</button>
+      <button class="rb wide" id="rb-chart-line" title="Линейная">📈 Линия</button>
+      <button class="rb wide" id="rb-chart-pie" title="Круговая">🥧 Круг</button>
+      <button class="rb wide" id="rb-chart-insert" title="Выбрать тип">＋ Диаграмма</button>
+    </div>
+    <div class="ribbon-group" data-label="Файл">
+      <button class="rb wide" id="rb-print" title="Печать (Ctrl+P)">🖨 Печать</button>
+      <button class="rb wide" id="rb-csv">⬇ CSV</button>
+      <button class="rb wide" id="rb-json">⬇ JSON</button>
+      <button class="rb wide" id="rb-reset">🗑 Сброс</button>
+    </div>
+  </div>
+
+  <!-- Строка формул -->
+  <div class="formula-bar">
+    <div class="name-box">
+      <input type="text" id="nameBox" value="A1" spellcheck="false">
+    </div>
+    <div class="fx-btn" id="fxBtn" title="Вставить функцию">fx</div>
+    <input type="text" class="formula-input" id="formulaInput"
+           placeholder="Введите значение или формулу (начните с =)" spellcheck="false" autocomplete="off">
+  </div>
+
+  <!-- Таблица -->
+  <div class="sheet-wrap" id="sheetWrap">
+    <div class="sheet-inner" id="sheetInner">
+      <table id="grid"></table>
+      <div class="fill-handle" id="fillHandle"></div>
+      <div class="fill-preview" id="fillPreview"></div>
+    </div>
+  </div>
+
+  <!-- Вкладки -->
+  <div class="tabs-bar">
+    <button class="tab-nav" id="tabPrev">◀</button>
+    <button class="tab-nav" id="tabNext">▶</button>
+    <div id="tabsList" style="display:flex;gap:2px;flex:1;overflow:hidden"></div>
+    <button class="tab-add" id="tabAdd" title="Добавить лист">＋</button>
+  </div>
+
+  <!-- Статус-бар -->
+  <div class="statusbar">
+    <span class="stat" id="statMode">Готово</span>
+    <span class="grow"></span>
+    <span class="stat" id="statAvg"></span>
+    <span class="stat" id="statCount"></span>
+    <span class="stat" id="statSum"></span>
+  </div>
+</div>
+
+<!-- ═══════════ MOBILE APP ═══════════ -->
+<div id="mobileApp">
+  <!-- Top bar -->
+  <div class="m-topbar">
+    <button class="m-btn" id="mMenuBtn" title="Меню">
+      <svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+    </button>
+    <div class="m-title">Nitpad<span>.ГЛК</span></div>
+    <button class="m-btn" id="mStyleBtn" title="Стиль">
+      <svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/></svg>
+    </button>
+  </div>
+
+  <!-- Formula bar -->
+  <div class="m-formula-bar">
+    <div class="m-cell-ref" id="mCellRef">A1</div>
+    <input type="text" class="m-formula-input" id="mFormulaInput" placeholder="Значение или =формула" spellcheck="false" autocomplete="off">
+    <button class="m-fx" id="mFxBtn" title="Функция">fx</button>
+  </div>
+
+  <!-- Grid -->
+  <div class="m-grid-wrap" id="mGridWrap">
+    <div class="m-grid-inner" id="mGridInner" style="position:relative;display:inline-block;min-width:100%">
+      <table id="mGrid"></table>
+    </div>
+  </div>
+
+  <!-- Sheets bar -->
+  <div class="m-sheets" id="mSheets"></div>
+
+  <!-- Bottom bar -->
+  <div class="m-bottombar">
+    <button class="m-bb" data-action="undo" title="Отменить">
+      <span class="icon">↶</span><span class="lbl">Отмена</span>
+    </button>
+    <button class="m-bb" data-action="redo" title="Повторить">
+      <span class="icon">↷</span><span class="lbl">Повтор</span>
+    </button>
+    <button class="m-bb active" data-action="edit" title="Изменить">
+      <span class="icon">✏️</span><span class="lbl">Изменить</span>
+    </button>
+    <button class="m-bb" data-action="chart" title="Диаграмма">
+      <span class="icon">📊</span><span class="lbl">График</span>
+    </button>
+    <button class="m-bb" data-action="more" title="Ещё">
+      <span class="icon">⋯</span><span class="lbl">Ещё</span>
+    </button>
+  </div>
+</div>
+
+<!-- Переключатель версии -->
+<button class="switch-version" id="switchVersion" style="display:none">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 6.7 3M21 12a9 9 0 0 1-9 9 9 9 0 0 1-6.7-3"/><path d="M3 3v6h6M21 21v-6h-6"/></svg>
+  <span id="switchText">Сменить версию</span>
+</button>
+
+<!-- Контекстное меню (desktop) -->
+<div class="ctx-menu" id="ctxMenu"></div>
+
+<!-- Модалка функции -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3>Вставка функции</h3>
+    <div class="field">
+      <label>Функция</label>
+      <select id="fnSelect">
+        <option value="SUM">SUM — Сумма</option>
+        <option value="AVG">AVG — Среднее</option>
+        <option value="MIN">MIN — Минимум</option>
+        <option value="MAX">MAX — Максимум</option>
+        <option value="COUNT">COUNT — Количество</option>
+        <option value="IF">IF — Условие</option>
+        <option value="ROUND">ROUND — Округление</option>
+        <option value="ABS">ABS — Модуль</option>
+        <option value="SQRT">SQRT — Корень</option>
+        <option value="POW">POW — Степень</option>
+        <option value="MEDIAN">MEDIAN — Медиана</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Диапазон / Аргумент</label>
+      <input type="text" id="fnArg" placeholder="A1:A10" value="A1:A10">
+    </div>
+    <div class="actions">
+      <button id="fnCancel">Отмена</button>
+      <button class="primary" id="fnOk">Вставить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модалка диаграмм -->
+<div class="modal-bg" id="chartModalBg">
+  <div class="modal">
+    <h3>Вставка диаграммы</h3>
+    <div class="field">
+      <label>Диапазон данных</label>
+      <input type="text" id="chartRange" placeholder="A1:B10">
+      <div style="font-size:11px;color:var(--text2);margin-top:4px">
+        Два столбца → 1-й подписи, 2-й значения
+      </div>
+    </div>
+    <div class="field">
+      <label>Тип</label>
+      <div class="chart-picker" id="chartPicker">
+        <div class="chart-opt selected" data-type="bar">
+          <span class="ico">📊</span>
+          <div class="lbl">Столбчатая</div>
+        </div>
+        <div class="chart-opt" data-type="line">
+          <span class="ico">📈</span>
+          <div class="lbl">Линейная</div>
+        </div>
+        <div class="chart-opt" data-type="pie">
+          <span class="ico">🥧</span>
+          <div class="lbl">Круговая</div>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="chartCancel">Отмена</button>
+      <button class="primary" id="chartOk">Вставить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модалка печати -->
+<div class="modal-bg" id="printModalBg">
+  <div class="modal">
+    <h3>Настройки печати</h3>
+    <div class="field">
+      <label>Ориентация</label>
+      <select id="printOrient">
+        <option value="portrait">Книжная</option>
+        <option value="landscape" selected>Альбомная</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Масштаб</label>
+      <select id="printScale">
+        <option value="1">100%</option>
+        <option value="0.9">90%</option>
+        <option value="0.8" selected>80%</option>
+        <option value="0.7">70%</option>
+        <option value="0.6">60%</option>
+      </select>
+    </div>
+    <div class="field">
+      <label><input type="checkbox" id="printGrid" checked style="width:auto;margin-right:6px"> Печатать сетку</label>
+    </div>
+    <div class="field">
+      <label><input type="checkbox" id="printCharts" checked style="width:auto;margin-right:6px"> Печатать диаграммы</label>
+    </div>
+    <div class="field">
+      <label><input type="checkbox" id="printHeaders" checked style="width:auto;margin-right:6px"> Печатать заголовки</label>
+    </div>
+    <div class="actions">
+      <button id="printCancel">Отмена</button>
+      <button id="printPreview">Предпросмотр</button>
+      <button class="primary" id="printGo">🖨 Печать</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile action sheet -->
+<div class="m-sheet-bg" id="mSheetBg">
+  <div class="m-sheet" id="mSheet" onclick="event.stopPropagation()">
+    <div class="m-sheet-handle"></div>
+    <div id="mSheetContent"></div>
+  </div>
+</div>
+
+<!-- Mobile edit overlay -->
+<div class="m-edit-overlay" id="mEditOverlay">
+  <button class="m-edit-btn cancel" id="mEditCancel">✕</button>
+  <input type="text" class="m-edit-input" id="mEditInput" spellcheck="false" autocomplete="off">
+  <button class="m-edit-btn ok" id="mEditOk">✓</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   Nitpad.ГЛК — ядро (общее для обеих версий)
+   ══════════════════════════════════════════════════════════════ */
+const ROWS = 200;
+const COLS = 26;
+const STORAGE_KEY = 'nitpad_glk_data_v3';
+const MODE_KEY = 'nitpad_glk_mode';
+const MODE_KEY_REMEMBER = 'nitpad_glk_remember';
+
+let sheets = [];
+let activeSheet = 0;
+let sel = { r1:0, c1:0, r2:0, c2:0 };
+let editing = null;
+let clipboard = null;
+let history = [];
+let histIdx = -1;
+let colWidths = {};
+let rowHeights = {};
+let currentMode = null;
+
+/* Утилиты */
+const colName = (i) => {
+  let s=''; i++;
+  while(i>0){ const r=(i-1)%26; s=String.fromCharCode(65+r)+s; i=Math.floor((i-1)/26); }
+  return s;
+};
+const cellId = (r,c) => colName(c) + (r+1);
+const parseId = (id) => {
+  const m = id.match(/^([A-Z]+)(\d+)$/);
+  if(!m) return null;
+  const c = m[1].split('').reduce((a,ch)=>a*26+(ch.charCodeAt(0)-64),0)-1;
+  return { r: parseInt(m[2],10)-1, c };
+};
+const norm = (s) => ({
+  r1: Math.min(s.r1,s.r2), r2: Math.max(s.r1,s.r2),
+  c1: Math.min(s.c1,s.c2), c2: Math.max(s.c1,s.c2),
+});
+const inSel = (r,c,s) => r>=s.r1 && r<=s.r2 && c>=s.c1 && c<=s.c2;
+const newSheet = () => ({ cells: {}, styles: {}, charts: [] });
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('on');
+  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('on'),1800);
+}
+
+/* Загрузка/сохранение */
+function load(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){
+    try{
+      const o = JSON.parse(raw);
+      sheets = o.sheets.map(s=>({ cells:s.cells||{}, styles:s.styles||{}, charts:s.charts||[] }));
+      activeSheet = o.active|0;
+      colWidths = o.colWidths || {}; rowHeights = o.rowHeights || {};
+      if(!sheets.length) sheets=[newSheet()];
+      return;
+    }catch(e){}
+  }
+  sheets = [newSheet()];
+}
+function save(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      sheets, active: activeSheet, colWidths, rowHeights
+    }));
+  }catch(e){}
+}
+function pushHistory(){
+  const snap = JSON.stringify({sheets,activeSheet,colWidths,rowHeights});
+  if(history[histIdx] === snap) return;
+  history = history.slice(0,histIdx+1);
+  history.push(snap);
+  if(history.length>60) history.shift();
+  histIdx = history.length-1;
+}
+function undo(){
+  if(histIdx<=0) return;
+  histIdx--;
+  const o = JSON.parse(history[histIdx]);
+  sheets=o.sheets; activeSheet=o.activeSheet;
+  colWidths=o.colWidths; rowHeights=o.rowHeights;
+  refreshAll(); toast('Отменено');
+}
+function redo(){
+  if(histIdx>=history.length-1) return;
+  histIdx++;
+  const o = JSON.parse(history[histIdx]);
+  sheets=o.sheets; activeSheet=o.activeSheet;
+  colWidths=o.colWidths; rowHeights=o.rowHeights;
+  refreshAll(); toast('Повторено');
+}
+function refreshAll(){
+  if(currentMode === 'desktop'){ buildTable(); renderAll(); renderTabs(); }
+  else if(currentMode === 'mobile'){ buildMobileTable(); renderMobileAll(); renderMobileSheets(); }
+  save();
+}
+
+/* ═══════════════ ФОРМУЛЫ ═══════════════ */
+function computeValue(id, raw, visiting){
+  if(!raw || typeof raw !== 'string' || !raw.startsWith('=')){
+    if(raw === '' || raw === undefined || raw === null) return '';
+    const n = Number(raw);
+    return isNaN(n) ? raw : n;
+  }
+  if(visiting.has(id)) return '#ЦИКЛ!';
+  visiting.add(id);
+  try{
+    let expr = raw.slice(1).trim();
+    expr = expr.replace(/([A-Z]+\d+)\s*:\s*([A-Z]+\d+)/g, (m,a,b)=>{
+      const cells = rangeCells(a,b);
+      return '[' + cells.map(cid=>{
+        const v = computeValue(cid, sheets[activeSheet].cells[cid] ?? '', visiting);
+        const n = Number(v);
+        return isNaN(n) ? 0 : n;
+      }).join(',') + ']';
+    });
+    expr = expr.replace(/(?<![A-Z0-9_])([A-Z]+\d+)(?![A-Z0-9_])/g, (m,ref)=>{
+      const v = computeValue(ref, sheets[activeSheet].cells[ref] ?? '', visiting);
+      const n = Number(v);
+      return isNaN(n) ? 0 : n;
+    });
+    return safeEval(expr);
+  }catch(e){ return '#ОШИБКА!'; }
+  finally{ visiting.delete(id); }
+}
+function rangeCells(a,b){
+  const p1 = parseId(a), p2 = parseId(b);
+  if(!p1||!p2) return [];
+  const r1=Math.min(p1.r,p2.r), r2=Math.max(p1.r,p2.r);
+  const c1=Math.min(p1.c,p2.c), c2=Math.max(p1.c,p2.c);
+  const out = [];
+  for(let r=r1;r<=r2;r++) for(let c=c1;c<=c2;c++) out.push(cellId(r,c));
+  return out;
+}
+function safeEval(expr){
+  const fns = {
+    SUM:(...a)=>a.flat().reduce((x,y)=>x+(Number(y)||0),0),
+    AVG:(...a)=>{const f=a.flat().map(Number).filter(x=>!isNaN(x));return f.length?f.reduce((x,y)=>x+y,0)/f.length:0;},
+    MIN:(...a)=>{const f=a.flat().map(Number).filter(x=>!isNaN(x));return f.length?Math.min(...f):0;},
+    MAX:(...a)=>{const f=a.flat().map(Number).filter(x=>!isNaN(x));return f.length?Math.max(...f):0;},
+    COUNT:(...a)=>a.flat().filter(x=>!isNaN(Number(x)) && x!=='').length,
+    MEDIAN:(...a)=>{const f=a.flat().map(Number).filter(x=>!isNaN(x)).sort((x,y)=>x-y);const m=Math.floor(f.length/2);return f.length%2?f[m]:(f[m-1]+f[m])/2;},
+    ROUND:(x,d=0)=>Math.round(x*Math.pow(10,d))/Math.pow(10,d),
+    ABS:(x)=>Math.abs(x),
+    SQRT:(x)=>Math.sqrt(x),
+    POW:(x,y)=>Math.pow(x,y),
+    IF:(c,a,b)=>c?a:b,
+  };
+  const names = Object.keys(fns);
+  let s = expr.replace(new RegExp('\\b('+names.join('|')+')\\s*\\(','gi'),(m,n)=>'__FN__'+n.toUpperCase()+'(');
+  if(!/^[0-9+\-*/().,\s_\[\]'<>!=&|A-Za-z]*$/.test(s)) throw new Error('bad');
+  const fn = new Function(...names.map(n=>'__FN__'+n), 'return ('+s+');');
+  const r = fn(...names.map(n=>fns[n]));
+  if(typeof r === 'number' && !isFinite(r)) return '#ДЕЛ/0!';
+  return r;
+}
+function formatValue(v, fmt){
+  if(v === '' || v === null || v === undefined) return '';
+  if(typeof v !== 'number' || !isFinite(v)) return String(v);
+  switch(fmt){
+    case 'number':   return v.toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2});
+    case 'currency': return v.toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' ₽';
+    case 'percent':  return (v*100).toFixed(2) + '%';
+    case 'text':     return String(v);
+    default:         return Number.isInteger(v) ? String(v) : String(+v.toFixed(10));
+  }
+}
+function adjustFormula(raw, dr, dc){
+  if(typeof raw !== 'string' || !raw.startsWith('=')) return raw;
+  return raw.replace(/([A-Z]+)(\d+)/g, (m, col, row)=>{
+    const p = parseId(col+row);
+    if(!p) return m;
+    const nr = p.r + dr, nc = p.c + dc;
+    if(nr < 0 || nc < 0 || nr >= ROWS || nc >= COLS) return m;
+    return colName(nc) + (nr+1);
+  });
+}
+
+/* ═══════════════ СТИЛИ ═══════════════ */
+function applyStyle(patch){
+  const s = norm(sel);
+  const sheet = sheets[activeSheet];
+  for(let r=s.r1;r<=s.r2;r++)
+    for(let c=s.c1;c<=s.c2;c++){
+      const id = cellId(r,c);
+      sheet.styles[id] = Object.assign({}, sheet.styles[id] || {}, patch);
+    }
+  pushHistory(); refreshAll();
+}
+function toggleStyle(key){
+  const id = cellId(sel.r1, sel.c1);
+  const st = sheets[activeSheet].styles[id] || {};
+  applyStyle({ [key]: !st[key] });
+}
+
+/* ═══════════════ КОПИРОВАНИЕ ═══════════════ */
+function getSelMatrix(){
+  const s = norm(sel);
+  const sheet = sheets[activeSheet];
+  const m = [];
+  for(let r=s.r1;r<=s.r2;r++){
+    const row = [];
+    for(let c=s.c1;c<=s.c2;c++){
+      const id = cellId(r,c);
+      row.push({ raw: sheet.cells[id] ?? '', style: sheet.styles[id] ? {...sheet.styles[id]} : null });
+    }
+    m.push(row);
+  }
+  return m;
+}
+function doCopy(){ clipboard = { mode:'copy', matrix: getSelMatrix(), originR: norm(sel).r1, originC: norm(sel).c1, origin: norm(sel) }; toast('Скопировано'); }
+function doCut(){ clipboard = { mode:'cut', matrix: getSelMatrix(), originR: norm(sel).r1, originC: norm(sel).c1, origin: norm(sel) }; toast('Вырезано'); }
+function doPaste(){
+  if(!clipboard) return;
+  const sheet = sheets[activeSheet];
+  const s = norm(sel);
+  const m = clipboard.matrix;
+  for(let i=0;i<m.length;i++){
+    for(let j=0;j<m[i].length;j++){
+      const dstR = s.r1 + i, dstC = s.c1 + j;
+      if(dstR >= ROWS || dstC >= COLS) continue;
+      const dstId = cellId(dstR,dstC);
+      let raw = m[i][j].raw;
+      if(typeof raw === 'string' && raw.startsWith('='))
+        raw = adjustFormula(raw, dstR - clipboard.originR, dstC - clipboard.originC);
+      if(raw === '') delete sheet.cells[dstId];
+      else sheet.cells[dstId] = raw;
+      if(m[i][j].style) sheet.styles[dstId] = {...m[i][j].style};
+      else delete sheet.styles[dstId];
+    }
+  }
+  if(clipboard.mode === 'cut'){
+    const os = clipboard.origin;
+    for(let r=os.r1;r<=os.r2;r++)
+      for(let c=os.c1;c<=os.c2;c++){
+        const id = cellId(r,c);
+        delete sheet.cells[id]; delete sheet.styles[id];
+      }
+    clipboard = null;
+  }
+  pushHistory(); refreshAll(); toast('Вставлено');
+}
+
+/* ═══════════════ ВСТАВКА/УДАЛЕНИЕ СТРОК-СТОЛБЦОВ ═══════════════ */
+function insertRow(at){
+  const sheet = sheets[activeSheet];
+  const nc = {}, ns = {};
+  Object.keys(sheet.cells).forEach(id=>{
+    const p = parseId(id); if(!p) return;
+    const nr = p.r >= at ? p.r + 1 : p.r;
+    if(nr >= ROWS) return;
+    nc[cellId(nr,p.c)] = sheet.cells[id];
+  });
+  Object.keys(sheet.styles).forEach(id=>{
+    const p = parseId(id); if(!p) return;
+    const nr = p.r >= at ? p.r + 1 : p.r;
+    if(nr >= ROWS) return;
+    ns[cellId(nr,p.c)] = sheet.styles[id];
+  });
+  sheet.cells = nc; sheet.styles = ns;
+  const nh = {}; Object.keys(rowHeights).forEach(k=>{const r=+k;nh[r>=at?r+1:r]=rowHeights[k];}); rowHeights = nh;
+}
+function deleteRow(at){
+  const sheet = sheets[activeSheet];
+  const nc = {}, ns = {};
+  Object.keys(sheet.cells).forEach(id=>{
+    const p = parseId(id); if(!p || p.r === at) return;
+    nc[cellId(p.r > at ? p.r-1 : p.r, p.c)] = sheet.cells[id];
+  });
+  Object.keys(sheet.styles).forEach(id=>{
+    const p = parseId(id); if(!p || p.r === at) return;
+    ns[cellId(p.r > at ? p.r-1 : p.r, p.c)] = sheet.styles[id];
+  });
+  sheet.cells = nc; sheet.styles = ns;
+  const nh = {}; Object.keys(rowHeights).forEach(k=>{const r=+k;if(r===at)return;nh[r>at?r-1:r]=rowHeights[k];}); rowHeights = nh;
+}
+function insertCol(at){
+  const sheet = sheets[activeSheet];
+  const nc = {}, ns = {};
+  Object.keys(sheet.cells).forEach(id=>{
+    const p = parseId(id); if(!p) return;
+    const ncol = p.c >= at ? p.c + 1 : p.c;
+    if(ncol >= COLS) return;
+    nc[cellId(p.r,ncol)] = sheet.cells[id];
+  });
+  Object.keys(sheet.styles).forEach(id=>{
+    const p = parseId(id); if(!p) return;
+    const ncol = p.c >= at ? p.c + 1 : p.c;
+    if(ncol >= COLS) return;
+    ns[cellId(p.r,ncol)] = sheet.styles[id];
+  });
+  sheet.cells = nc; sheet.styles = ns;
+  const nw = {}; Object.keys(colWidths).forEach(k=>{const c=+k;nw[c>=at?c+1:c]=colWidths[k];}); colWidths = nw;
+}
+function deleteCol(at){
+  const sheet = sheets[activeSheet];
+  const nc = {}, ns = {};
+  Object.keys(sheet.cells).forEach(id=>{
+    const p = parseId(id); if(!p || p.c === at) return;
+    nc[cellId(p.r, p.c > at ? p.c-1 : p.c)] = sheet.cells[id];
+  });
+  Object.keys(sheet.styles).forEach(id=>{
+    const p = parseId(id); if(!p || p.c === at) return;
+    ns[cellId(p.r, p.c > at ? p.c-1 : p.c)] = sheet.styles[id];
+  });
+  sheet.cells = nc; sheet.styles = ns;
+  const nw = {}; Object.keys(colWidths).forEach(k=>{const c=+k;if(c===at)return;nw[c>at?c-1:c]=colWidths[k];}); colWidths = nw;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ДИАГРАММЫ (общие для обеих версий)
+   ══════════════════════════════════════════════════════════════ */
+function extractChartData(range){
+  const parts = range.split(':');
+  if(parts.length !== 2) return { labels: [], values: [] };
+  const p1 = parseId(parts[0]), p2 = parseId(parts[1]);
+  if(!p1 || !p2) return { labels: [], values: [] };
+  const r1 = Math.min(p1.r, p2.r), r2 = Math.max(p1.r, p2.r);
+  const c1 = Math.min(p1.c, p2.c), c2 = Math.max(p1.c, p2.c);
+  const sheet = sheets[activeSheet];
+  const labels = [], values = [];
+  if(c1 === c2){
+    for(let r=r1;r<=r2;r++){
+      const id = cellId(r,c1);
+      const v = computeValue(id, sheet.cells[id] ?? '', new Set());
+      const n = Number(v);
+      if(v !== '' && !isNaN(n)){ labels.push('Стр'+(r+1)); values.push(n); }
+    }
+  } else {
+    for(let r=r1;r<=r2;r++){
+      const idL = cellId(r,c1), idV = cellId(r,c2);
+      const lv = computeValue(idL, sheet.cells[idL] ?? '', new Set());
+      const vv = computeValue(idV, sheet.cells[idV] ?? '', new Set());
+      const n = Number(vv);
+      if(vv !== '' && !isNaN(n)){
+        labels.push(String(lv) || ('Стр'+(r+1)));
+        values.push(n);
+      }
+    }
+  }
+  return { labels, values };
+}
+function niceNumber(x){
+  if(x === 0) return 0;
+  const abs = Math.abs(x);
+  const exp = Math.floor(Math.log10(abs));
+  const base = Math.pow(10, exp);
+  const n = x / base;
+  let nice;
+  if(n <= 1) nice = 1;
+  else if(n <= 2) nice = 2;
+  else if(n <= 5) nice = 5;
+  else nice = 10;
+  return nice * base;
+}
+function fmtVal(v){
+  if(Math.abs(v) >= 1000) return v.toLocaleString('ru-RU',{maximumFractionDigits:1});
+  if(Number.isInteger(v)) return String(v);
+  return String(+v.toFixed(2));
+}
+function fmtAxis(v){
+  if(v === 0) return '0';
+  const abs = Math.abs(v);
+  if(abs >= 1e6) return (v/1e6).toFixed(1) + 'M';
+  if(abs >= 1e3) return (v/1e3).toFixed(1) + 'k';
+  if(abs < 1) return v.toFixed(2);
+  return String(+v.toFixed(2));
+}
+function roundRect(ctx, x, y, w, h, r){
+  if(h < r*2) r = h/2;
+  if(w < r*2) r = w/2;
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+}
+function drawChart(canvas, ch, compact){
+  const body = canvas.parentElement;
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = body.clientWidth || 300;
+  const cssH = body.clientHeight || 200;
+  canvas.width = cssW * dpr;
+  canvas.height = cssH * dpr;
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, cssW, cssH);
+  const data = extractChartData(ch.range);
+  if(!data.values.length){
+    ctx.fillStyle = '#999';
+    ctx.font = '13px "Segoe UI", Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Нет данных', cssW/2, cssH/2);
+    return;
+  }
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, cssW, cssH);
+  const fs = compact ? 9 : 11;
+  if(ch.type === 'bar') drawBarChart(ctx, cssW, cssH, data, fs);
+  else if(ch.type === 'line') drawLineChart(ctx, cssW, cssH, data, fs);
+  else if(ch.type === 'pie') drawPieChart(ctx, cssW, cssH, data, fs);
+}
+function drawBarChart(ctx, W, H, data, fs){
+  const padL = 42, padR = 12, padT = 16, padB = 38;
+  const cw = W - padL - padR, chh = H - padT - padB;
+  const maxV = Math.max(...data.values, 0);
+  const minV = Math.min(...data.values, 0);
+  const range = maxV - minV || 1;
+  const step = niceNumber(range / 4) || 1;
+  const topV = Math.ceil(maxV / step) * step;
+  const botV = Math.floor(minV / step) * step;
+  const fullRange = topV - botV || 1;
+  ctx.font = fs + 'px "Segoe UI", Arial';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  const ySteps = Math.round(fullRange / step);
+  for(let i=0;i<=ySteps;i++){
+    const v = botV + i*step;
+    const y = padT + chh - ((v - botV) / fullRange) * chh;
+    ctx.strokeStyle = i===0 ? '#999' : '#ececec';
+    ctx.beginPath();
+    ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    ctx.fillStyle = '#666';
+    ctx.fillText(fmtAxis(v), padL - 4, y);
+  }
+  const n = data.values.length;
+  const slot = cw / n;
+  const barW = Math.min(slot * 0.72, 70);
+  const gap = slot - barW;
+  data.values.forEach((v, i) => {
+    const x = padL + i*slot + gap/2;
+    const zeroY = padT + chh - ((0 - botV) / fullRange) * chh;
+    const vY = padT + chh - ((v - botV) / fullRange) * chh;
+    const top = Math.min(zeroY, vY);
+    const height = Math.max(1, Math.abs(vY - zeroY));
+    const grd = ctx.createLinearGradient(0, top, 0, top + height);
+    if(v >= 0){ grd.addColorStop(0, '#4a9e6e'); grd.addColorStop(1, '#217346'); }
+    else { grd.addColorStop(0, '#c0392b'); grd.addColorStop(1, '#e74c3c'); }
+    ctx.fillStyle = grd;
+    roundRect(ctx, x, top, barW, height, 3); ctx.fill();
+    if(barW > 22){
+      ctx.fillStyle = '#212121';
+      ctx.font = 'bold ' + (fs-0.5) + 'px "Segoe UI", Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(fmtVal(v), x + barW/2, top - 3);
+    }
+    ctx.fillStyle = '#555';
+    ctx.font = fs + 'px "Segoe UI", Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const label = data.labels[i];
+    const maxChars = Math.max(3, Math.floor(slot / 6));
+    const short = label.length > maxChars ? label.slice(0, maxChars) + '…' : label;
+    ctx.save();
+    ctx.translate(x + barW/2, H - padB + 6);
+    if(slot < 60 && label.length > 5){
+      ctx.rotate(-Math.PI/6);
+      ctx.textAlign = 'right';
+      ctx.fillText(short, 0, 0);
+    }else{
+      ctx.fillText(short, 0, 0);
+    }
+    ctx.restore();
+  });
+}
+function drawLineChart(ctx, W, H, data, fs){
+  const padL = 42, padR = 16, padT = 16, padB = 38;
+  const cw = W - padL - padR, chh = H - padT - padB;
+  const maxV = Math.max(...data.values, 0);
+  const minV = Math.min(...data.values, 0);
+  const range = maxV - minV || 1;
+  const step = niceNumber(range / 4) || 1;
+  const topV = Math.ceil(maxV / step) * step;
+  const botV = Math.floor(minV / step) * step;
+  const fullRange = topV - botV || 1;
+  ctx.font = fs + 'px "Segoe UI", Arial';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  const ySteps = Math.round(fullRange / step);
+  for(let i=0;i<=ySteps;i++){
+    const v = botV + i*step;
+    const y = padT + chh - ((v - botV)/fullRange) * chh;
+    ctx.strokeStyle = i===0 ? '#999' : '#ececec';
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W-padR, y); ctx.stroke();
+    ctx.fillStyle = '#666';
+    ctx.fillText(fmtAxis(v), padL - 4, y);
+  }
+  const n = data.values.length;
+  const xStep = n > 1 ? cw / (n-1) : cw;
+  const pts = data.values.map((v,i)=>({
+    x: padL + (n > 1 ? i*xStep : cw/2),
+    y: padT + chh - ((v - botV)/fullRange) * chh,
+    v, label: data.labels[i]
+  }));
+  if(pts.length > 1){
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, padT + chh);
+    pts.forEach(p=>ctx.lineTo(p.x, p.y));
+    ctx.lineTo(pts[pts.length-1].x, padT + chh);
+    ctx.closePath();
+    const grd = ctx.createLinearGradient(0, padT, 0, padT + chh);
+    grd.addColorStop(0, 'rgba(33,115,70,.25)');
+    grd.addColorStop(1, 'rgba(33,115,70,.02)');
+    ctx.fillStyle = grd; ctx.fill();
+  }
+  ctx.strokeStyle = '#217346';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  pts.forEach((p,i)=> i===0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  ctx.stroke();
+  pts.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+    ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.strokeStyle = '#217346'; ctx.lineWidth = 2; ctx.stroke();
+    if(!compact){
+      ctx.fillStyle = '#185c37';
+      ctx.font = 'bold ' + (fs-0.5) + 'px "Segoe UI", Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(fmtVal(p.v), p.x, p.y - 8);
+    }
+  });
+  const slot = cw / Math.max(1, n);
+  ctx.fillStyle = '#555';
+  ctx.font = fs + 'px "Segoe UI", Arial';
+  ctx.textBaseline = 'top';
+  pts.forEach((p) => {
+    const maxChars = Math.max(3, Math.floor(slot / 6));
+    const short = p.label.length > maxChars ? p.label.slice(0, maxChars) + '…' : p.label;
+    ctx.save();
+    ctx.translate(p.x, H - padB + 6);
+    if(slot < 60 && p.label.length > 5){
+      ctx.rotate(-Math.PI/6); ctx.textAlign = 'right';
+      ctx.fillText(short, 0, 0);
+    }else{ ctx.textAlign = 'center'; ctx.fillText(short, 0, 0); }
+    ctx.restore();
+  });
+}
+function drawPieChart(ctx, W, H, data, fs){
+  const total = data.values.reduce((s,v)=>s+Math.abs(v), 0) || 1;
+  const cx = W * 0.34;
+  const cy = H / 2;
+  const R = Math.min(cx, cy) - 14;
+  const colors = ['#217346','#4a9e6e','#8bc34a','#ffc107','#ff9800','#f44336','#9c27b0','#3f51b5','#00bcd4','#795548'];
+  let angle = -Math.PI/2;
+  data.values.forEach((v, i) => {
+    const frac = Math.abs(v) / total;
+    const sliceAngle = frac * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, angle, angle + sliceAngle);
+    ctx.closePath();
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    angle += sliceAngle;
+  });
+  const legendX = W * 0.66;
+  const legendY = 20;
+  const lineH = fs + 6;
+  ctx.font = fs + 'px "Segoe UI", Arial';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  data.values.forEach((v, i) => {
+    const y = legendY + i * lineH;
+    if(y > H - 8) return;
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fillRect(legendX, y - 5, 10, 10);
+    ctx.strokeStyle = 'rgba(0,0,0,.1)';
+    ctx.strokeRect(legendX, y - 5, 10, 10);
+    ctx.fillStyle = '#212121';
+    const pct = (Math.abs(v)/total*100).toFixed(1) + '%';
+    const lbl = data.labels[i].length > 9 ? data.labels[i].slice(0,9)+'…' : data.labels[i];
+    ctx.fillText(`${lbl} — ${pct}`, legendX + 14, y);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ПЕЧАТЬ (общая)
+   ══════════════════════════════════════════════════════════════ */
+function buildPrintableHTML(opts){
+  const sheet = sheets[activeSheet];
+  const { orientation, scale, grid, charts, headers } = opts;
+  const scaleCss = scale !== 1 ? `transform: scale(${scale}); transform-origin: top left;` : '';
+  let lastR = 0, lastC = 0;
+  Object.keys(sheet.cells).forEach(id=>{
+    const p = parseId(id); if(!p) return;
+    if(sheet.cells[id] !== undefined && sheet.cells[id] !== ''){
+      if(p.r > lastR) lastR = p.r;
+      if(p.c > lastC) lastC = p.c;
+    }
+  });
+  if(lastR < 10) lastR = 10;
+  if(lastC < 5) lastC = 5;
+  const borderColor = grid ? '#999' : 'transparent';
+  let html = `<div style="font-family:Arial,sans-serif;font-size:11px;color:#000;${scaleCss}">`;
+  html += `<div style="margin-bottom:8px;font-weight:600;color:#217346;font-size:13px">Nitpad.ГЛК — Лист${activeSheet+1}</div>`;
+  html += `<table style="border-collapse:collapse;table-layout:auto">`;
+  if(headers){
+    html += '<tr>';
+    html += `<th style="border:1px solid ${borderColor};background:#f0f0f0;padding:2px 6px;font-size:10px"></th>`;
+    for(let c=0;c<=lastC;c++){
+      html += `<th style="border:1px solid ${borderColor};background:#f0f0f0;padding:2px 6px;font-size:10px;text-align:center">${colName(c)}</th>`;
+    }
+    html += '</tr>';
+  }
+  for(let r=0;r<=lastR;r++){
+    html += '<tr>';
+    if(headers){
+      html += `<th style="border:1px solid ${borderColor};background:#f0f0f0;padding:2px 6px;font-size:10px;text-align:center">${r+1}</th>`;
+    }
+    for(let c=0;c<=lastC;c++){
+      const id = cellId(r,c);
+      const raw = sheet.cells[id] ?? '';
+      const v = computeValue(id, raw, new Set());
+      const st = sheet.styles[id] || {};
+      let style = `border:1px solid ${borderColor};padding:3px 6px;white-space:nowrap;`;
+      if(st.bold) style += 'font-weight:600;';
+      if(st.italic) style += 'font-style:italic;';
+      if(st.underline) style += 'text-decoration:underline;';
+      if(st.color) style += `color:${st.color};`;
+      if(st.bg) style += `background:${st.bg};`;
+      if(st.font) style += `font-family:${st.font};`;
+      if(st.size) style += `font-size:${st.size}px;`;
+      if(st.align) style += `text-align:${st.align};`;
+      else if(typeof v === 'number' && isFinite(v)) style += 'text-align:right;';
+      html += `<td style="${style}">${escapeHtml(formatValue(v, st.numFmt))}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</table>';
+  if(charts && sheet.charts && sheet.charts.length){
+    html += `<div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:12px">`;
+    sheet.charts.forEach(ch => {
+      html += `<div style="border:1px solid #ccc;border-radius:4px;padding:6px;background:#fff">
+        <div style="font-size:10.5px;color:#555;margin-bottom:4px">${chartTypeName(ch.type)} — ${ch.range}</div>
+        <div data-chart-id="${ch.id}" style="width:${ch.w}px;height:${ch.h-24}px"></div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  return { html, chartsList: (charts ? sheet.charts : []) };
+}
+function chartTypeName(t){
+  return t === 'bar' ? '📊 Столбчатая' : t === 'line' ? '📈 Линейная' : '🥧 Круговая';
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function printSheet(opts){
+  const { html, chartsList } = buildPrintableHTML(opts);
+  const pageCss = opts.orientation === 'landscape'
+    ? '@page { size: A4 landscape; margin: 10mm; }'
+    : '@page { size: A4 portrait; margin: 10mm; }';
+  const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <title>Nitpad.ГЛК — Печать</title>
+    <style>${pageCss}
+      html,body{margin:0;padding:0;background:#fff;font-family:Arial,sans-serif}
+      @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    </style></head><body>${html}</body></html>`;
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(iframe);
+  const doc = iframe.contentDocument;
+  doc.open(); doc.write(fullHtml); doc.close();
+  chartsList.forEach(ch => {
+    const holder = doc.querySelector(`[data-chart-id="${ch.id}"]`);
+    if(!holder) return;
+    const canvas = doc.createElement('canvas');
+    const W = ch.w, H = ch.h - 24;
+    const dpr = 2;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    holder.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const data = extractChartData(ch.range);
+    if(!data.values.length){
+      ctx.fillStyle='#999'; ctx.font='12px Arial'; ctx.textAlign='center';
+      ctx.fillText('Нет данных', W/2, H/2); return;
+    }
+    if(ch.type === 'bar') drawBarChart(ctx, W, H, data, 11);
+    else if(ch.type === 'line') drawLineChart(ctx, W, H, data, 11);
+    else drawPieChart(ctx, W, H, data, 11);
+  });
+  setTimeout(()=>{
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    setTimeout(()=>iframe.remove(), 1500);
+  }, 350);
+}
+function exportCSV(){
+  const sheet = sheets[activeSheet];
+  let csv = '';
+  for(let r=0;r<ROWS;r++){
+    const row = [];
+    for(let c=0;c<COLS;c++){
+      const id = cellId(r,c);
+      let v = computeValue(id, sheet.cells[id] ?? '', new Set());
+      v = String(v).replace(/"/g,'""');
+      row.push('"'+v+'"');
+    }
+    csv += row.join(';') + '\n';
+  }
+  download('\ufeff'+csv, 'nitpad_'+Date.now()+'.csv', 'text/csv');
+}
+function exportJSON(){
+  const data = JSON.stringify({sheets, active:activeSheet, colWidths, rowHeights}, null, 2);
+  download(data, 'nitpad_'+Date.now()+'.json', 'application/json');
+}
+function download(text, name, mime){
+  const blob = new Blob([text], {type:mime+';charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  toast('Экспортировано: ' + name);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ▓▓▓  DESKTOP APP  ▓▓▓
+   ══════════════════════════════════════════════════════════════ */
+let chartDrag = null, chartResize = null;
+
+function buildTable(){
+  const tbl = document.getElementById('grid');
+  if(!tbl) return;
+  tbl.innerHTML = '';
+  const cg = document.createElement('colgroup');
+  const c0 = document.createElement('col'); c0.style.width = '42px'; cg.appendChild(c0);
+  for(let c=0;c<COLS;c++){
+    const col = document.createElement('col');
+    col.style.width = (colWidths[c] || 100) + 'px';
+    cg.appendChild(col);
+  }
+  tbl.appendChild(cg);
+  const thead = document.createElement('thead');
+  const trh = document.createElement('tr');
+  const corner = document.createElement('th');
+  corner.className='corner';
+  corner.onmousedown = (e)=>{ e.preventDefault(); selectAll(); };
+  trh.appendChild(corner);
+  for(let c=0;c<COLS;c++){
+    const th = document.createElement('th');
+    th.textContent = colName(c);
+    th.dataset.col = c;
+    th.onmousedown = (e)=>{
+      if(e.target.classList.contains('col-resizer')) return;
+      e.preventDefault(); selectColumn(c);
+    };
+    const rz = document.createElement('div');
+    rz.className='col-resizer';
+    rz.onmousedown = (e)=>{ e.preventDefault(); e.stopPropagation(); startColResize(c, e); };
+    th.appendChild(rz);
+    trh.appendChild(th);
+  }
+  thead.appendChild(trh);
+  tbl.appendChild(thead);
+  const tb = document.createElement('tbody');
+  for(let r=0;r<ROWS;r++){
+    const tr = document.createElement('tr');
+    if(rowHeights[r]) tr.style.height = rowHeights[r] + 'px';
+    const rh = document.createElement('th');
+    rh.className='row-h';
+    rh.textContent = r+1;
+    rh.dataset.row = r;
+    rh.onmousedown = (e)=>{
+      if(e.target.classList.contains('row-resizer')) return;
+      e.preventDefault(); selectRow(r);
+    };
+    const rz = document.createElement('div');
+    rz.className='row-resizer';
+    rz.onmousedown = (e)=>{ e.preventDefault(); e.stopPropagation(); startRowResize(r, e); };
+    rh.appendChild(rz);
+    tr.appendChild(rh);
+    for(let c=0;c<COLS;c++){
+      const td = document.createElement('td');
+      td.dataset.r = r; td.dataset.c = c;
+      td.dataset.id = cellId(r,c);
+      tr.appendChild(td);
+    }
+    tb.appendChild(tr);
+  }
+  tbl.appendChild(tb);
+}
+function renderAll(){
+  const sheet = sheets[activeSheet];
+  const s = norm(sel);
+  const tds = document.querySelectorAll('#grid td');
+  tds.forEach(td=>{
+    const r = +td.dataset.r, c = +td.dataset.c, id = td.dataset.id;
+    if(editing && editing.r===r && editing.c===c) return;
+    const raw = sheet.cells[id] ?? '';
+    const val = computeValue(id, raw, new Set());
+    td.textContent = formatValue(val, sheet.styles[id]?.numFmt);
+    td.className = '';
+    if(raw.toString().startsWith('=')) td.classList.add('fml');
+    if(typeof val === 'number' && isFinite(val)) td.classList.add('num');
+    if(val === '#ОШИБКА!' || val === '#ЦИКЛ!' || val === '#ИМЯ?' || val === '#ДЕЛ/0!')
+      td.classList.add('err');
+    const st = sheet.styles[id] || {};
+    if(st.bold) td.classList.add('bold');
+    if(st.italic) td.classList.add('italic');
+    if(st.underline) td.classList.add('underline');
+    if(st.align === 'center') td.classList.add('center');
+    if(st.align === 'right') td.classList.add('right');
+    if(st.align === 'left') td.classList.add('left');
+    if(st.color) td.style.color = st.color; else td.style.color = '';
+    if(st.bg) td.style.background = st.bg; else td.style.background = '';
+    if(st.font) td.style.fontFamily = st.font; else td.style.fontFamily = '';
+    if(st.size) td.style.fontSize = st.size + 'px'; else td.style.fontSize = '';
+    if(inSel(r,c,s)) td.classList.add('in-sel');
+    if(r===sel.r2 && c===sel.c2) td.classList.add('sel-anchor');
+  });
+  document.querySelectorAll('#grid thead th[data-col]').forEach(th=>{
+    th.classList.toggle('highlight', +th.dataset.col>=s.c1 && +th.dataset.col<=s.c2);
+  });
+  document.querySelectorAll('#grid tbody th.row-h').forEach(th=>{
+    th.classList.toggle('highlight', +th.dataset.row>=s.r1 && +th.dataset.row<=s.r2);
+  });
+  updateFormulaBar();
+  updateStatus();
+  positionFillHandle();
+  renderCharts();
+}
+function updateFormulaBar(){
+  const id = cellId(sel.r1, sel.c1);
+  const s = norm(sel);
+  const nb = document.getElementById('nameBox');
+  const fi = document.getElementById('formulaInput');
+  if(!nb || !fi) return;
+  if(s.r1===s.r2 && s.c1===s.c2){
+    nb.value = id;
+    if(document.activeElement !== fi) fi.value = sheets[activeSheet].cells[id] ?? '';
+  }else{
+    nb.value = `${cellId(s.r1,s.c1)}:${cellId(s.r2,s.c2)}`;
+    if(document.activeElement !== fi) fi.value = '';
+  }
+}
+function updateStatus(){
+  const s = norm(sel);
+  let sum=0, cnt=0, nums=0;
+  const sheet = sheets[activeSheet];
+  for(let r=s.r1;r<=s.r2;r++)
+    for(let c=s.c1;c<=s.c2;c++){
+      const id = cellId(r,c);
+      const raw = sheet.cells[id] ?? '';
+      if(raw === '') continue;
+      cnt++;
+      const v = computeValue(id, raw, new Set());
+      const n = Number(v);
+      if(!isNaN(n) && isFinite(n) && v!==''){ sum+=n; nums++; }
+    }
+  const statSum = document.getElementById('statSum');
+  const statAvg = document.getElementById('statAvg');
+  const statCnt = document.getElementById('statCount');
+  if(!statSum) return;
+  if(nums){
+    statSum.textContent = `Сумма: ${sum.toLocaleString('ru-RU',{maximumFractionDigits:4})}`;
+    statAvg.textContent = `Среднее: ${(sum/nums).toLocaleString('ru-RU',{maximumFractionDigits:4})}`;
+    statCnt.textContent = `Числа: ${nums} из ${cnt}`;
+  }else if(cnt){
+    statSum.textContent=''; statAvg.textContent='';
+    statCnt.textContent = `Заполнено: ${cnt}`;
+  }else{ statSum.textContent=''; statAvg.textContent=''; statCnt.textContent=''; }
+}
+function selectCell(r,c,extend=false){
+  if(extend){ sel.r2 = r; sel.c2 = c; }
+  else{ sel.r1=sel.r2=r; sel.c1=sel.c2=c; }
+  renderAll();
+}
+function selectRow(r){ sel.r1=sel.r2=r; sel.c1=0; sel.c2=COLS-1; renderAll(); }
+function selectColumn(c){ sel.c1=sel.c2=c; sel.r1=0; sel.r2=ROWS-1; renderAll(); }
+function selectAll(){ sel={r1:0,c1:0,r2:ROWS-1,c2:COLS-1}; renderAll(); }
+
+function beginEdit(r, c, initial){
+  const td = document.querySelector(`#grid td[data-r="${r}"][data-c="${c}"]`);
+  if(!td) return;
+  editing = { r, c };
+  const id = cellId(r,c);
+  const raw = sheets[activeSheet].cells[id] ?? '';
+  td.classList.add('editing');
+  td.textContent = initial !== undefined ? initial : raw;
+  const range = document.createRange();
+  range.selectNodeContents(td);
+  range.collapse(false);
+  const s = window.getSelection();
+  s.removeAllRanges(); s.addRange(range);
+  td.focus();
+  document.getElementById('statMode').textContent = 'Ввод';
+}
+function commitEdit(){
+  if(!editing) return;
+  const td = document.querySelector(`#grid td[data-r="${editing.r}"][data-c="${editing.c}"]`);
+  const id = cellId(editing.r, editing.c);
+  if(td){
+    const text = td.textContent;
+    const sheet = sheets[activeSheet];
+    if(text === '') delete sheet.cells[id];
+    else sheet.cells[id] = text;
+  }
+  editing = null;
+  pushHistory();
+  renderAll();
+  save();
+  document.getElementById('statMode').textContent = 'Готово';
+}
+function cancelEdit(){ editing = null; renderAll(); document.getElementById('statMode').textContent='Готово'; }
+
+/* Fill handle */
+const fillHandle = document.getElementById('fillHandle');
+const fillPreview = document.getElementById('fillPreview');
+function positionFillHandle(){
+  if(!fillHandle) return;
+  const s = norm(sel);
+  const td = document.querySelector(`#grid td[data-r="${s.r2}"][data-c="${s.c2}"]`);
+  if(!td){ fillHandle.classList.remove('on'); return; }
+  fillHandle.style.left = (td.offsetLeft + td.offsetWidth - 4) + 'px';
+  fillHandle.style.top = (td.offsetTop + td.offsetHeight - 4) + 'px';
+  fillHandle.classList.add('on');
+}
+let filling = null;
+if(fillHandle){
+  fillHandle.addEventListener('mousedown', e=>{
+    e.preventDefault(); e.stopPropagation();
+    const s = norm(sel);
+    filling = { r1:s.r1, c1:s.c1, r2:s.r2, c2:s.c2, tr:s.r2, tc:s.c2 };
+    fillPreview.style.display = 'block';
+    updateFillPreview();
+  });
+}
+function updateFillPreview(){
+  if(!filling) return;
+  const r1 = Math.min(filling.r1, filling.tr), r2 = Math.max(filling.r2, filling.tr);
+  const c1 = Math.min(filling.c1, filling.tc), c2 = Math.max(filling.c2, filling.tc);
+  const tl = document.querySelector(`#grid td[data-r="${r1}"][data-c="${c1}"]`);
+  const br = document.querySelector(`#grid td[data-r="${r2}"][data-c="${c2}"]`);
+  if(tl && br){
+    fillPreview.style.left = tl.offsetLeft + 'px';
+    fillPreview.style.top = tl.offsetTop + 'px';
+    fillPreview.style.width = (br.offsetLeft + br.offsetWidth - tl.offsetLeft) + 'px';
+    fillPreview.style.height = (br.offsetTop + br.offsetHeight - tl.offsetTop) + 'px';
+  }
+}
+function doFill(e){
+  if(!filling) return;
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const td = el && el.closest ? el.closest('#grid td') : null;
+  if(!td) return;
+  filling.tr = +td.dataset.r; filling.tc = +td.dataset.c;
+  updateFillPreview();
+}
+function endFill(){
+  if(!filling) return;
+  const f = filling; filling = null;
+  fillPreview.style.display = 'none';
+  const r1 = Math.min(f.r1, f.tr), r2 = Math.max(f.r2, f.tr);
+  const c1 = Math.min(f.c1, f.tc), c2 = Math.max(f.c2, f.tc);
+  const srcR1 = f.r1, srcR2 = f.r2, srcC1 = f.c1, srcC2 = f.c2;
+  const srcH = srcR2 - srcR1 + 1, srcW = srcC2 - srcC1 + 1;
+  const sheet = sheets[activeSheet];
+  for(let r=r1;r<=r2;r++){
+    for(let c=c1;c<=c2;c++){
+      if(inSel(r,c,{r1:srcR1,r2:srcR2,c1:srcC1,c2:srcC2})) continue;
+      const sr = srcR1 + (((r - srcR1) % srcH) + srcH) % srcH;
+      const sc = srcC1 + (((c - srcC1) % srcW) + srcW) % srcW;
+      const srcId = cellId(sr,sc), dstId = cellId(r,c);
+      const raw = sheet.cells[srcId];
+      if(raw === undefined) delete sheet.cells[dstId];
+      else sheet.cells[dstId] = adjustFormula(raw, r-sr, c-sc);
+      if(sheet.styles[srcId]) sheet.styles[dstId] = {...sheet.styles[srcId]};
+    }
+  }
+  sel = {r1, c1, r2, c2};
+  pushHistory(); renderAll(); save();
+  toast('Автозаполнение');
+}
+
+/* Resize */
+let resizing = null;
+function startColResize(c, e){ resizing={type:'col',c,startX:e.clientX,startW:colWidths[c]||100}; document.body.style.cursor='col-resize'; }
+function startRowResize(r, e){ resizing={type:'row',r,startY:e.clientY,startH:rowHeights[r]||24}; document.body.style.cursor='row-resize'; }
+function doResize(e){
+  if(!resizing) return;
+  if(resizing.type === 'col'){
+    const w = Math.max(30, resizing.startW + (e.clientX - resizing.startX));
+    colWidths[resizing.c] = w;
+    const col = document.querySelectorAll('#grid colgroup col')[resizing.c + 1];
+    if(col) col.style.width = w + 'px';
+  }else{
+    const h = Math.max(18, resizing.startH + (e.clientY - resizing.startY));
+    rowHeights[resizing.r] = h;
+    const tr = document.querySelectorAll('#grid tbody tr')[resizing.r];
+    if(tr) tr.style.height = h + 'px';
+  }
+  positionFillHandle();
+}
+function endResize(){ if(!resizing) return; resizing=null; document.body.style.cursor=''; pushHistory(); save(); }
+
+/* Charts desktop */
+function insertChart(type, rangeStr){
+  const s = norm(sel);
+  const range = rangeStr || `${cellId(s.r1,s.c1)}:${cellId(s.r2,s.c2)}`;
+  const data = extractChartData(range);
+  if(!data.values.length){ toast('Диапазон не содержит чисел'); return; }
+  const wrap = document.getElementById('sheetWrap');
+  const ch = {
+    id: 'ch_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    type, range,
+    x: wrap.scrollLeft + 60,
+    y: wrap.scrollTop + 40,
+    w: 400, h: 280
+  };
+  sheets[activeSheet].charts.push(ch);
+  pushHistory(); renderCharts(); save();
+  toast('Диаграмма добавлена');
+}
+function removeChart(id){
+  const arr = sheets[activeSheet].charts || [];
+  const i = arr.findIndex(c=>c.id === id);
+  if(i < 0) return;
+  arr.splice(i,1);
+  pushHistory(); renderCharts(); save();
+  toast('Диаграмма удалена');
+}
+function renderCharts(){
+  const container = document.getElementById('sheetInner');
+  if(!container) return;
+  container.querySelectorAll('.chart-box').forEach(el=>el.remove());
+  const charts = sheets[activeSheet].charts || [];
+  charts.forEach(ch => {
+    const box = document.createElement('div');
+    box.className = 'chart-box';
+    box.dataset.chartId = ch.id;
+    box.style.left = ch.x + 'px';
+    box.style.top = ch.y + 'px';
+    box.style.width = ch.w + 'px';
+    box.style.height = ch.h + 'px';
+    const hd = document.createElement('div');
+    hd.className = 'chart-header';
+    const ico = ch.type === 'bar' ? '📊' : ch.type === 'line' ? '📈' : '🥧';
+    hd.innerHTML = `<span class="chart-title">${ico} ${ch.range}</span>`;
+    const closeBtn = document.createElement('span');
+    closeBtn.className = 'chart-close';
+    closeBtn.textContent = '×';
+    closeBtn.onmousedown = (e)=>e.stopPropagation();
+    closeBtn.onclick = (e)=>{
+      e.stopPropagation();
+      if(confirm('Удалить диаграмму?')) removeChart(ch.id);
+    };
+    hd.appendChild(closeBtn);
+    hd.addEventListener('mousedown', (e)=>{
+      if(e.target === closeBtn) return;
+      e.preventDefault();
+      chartDrag = { ch, box, startX: e.clientX, startY: e.clientY, startL: ch.x, startT: ch.y };
+      box.classList.add('dragging');
+    });
+    box.appendChild(hd);
+    const body = document.createElement('div');
+    body.className = 'chart-body';
+    const canvas = document.createElement('canvas');
+    body.appendChild(canvas);
+    box.appendChild(body);
+    const rz = document.createElement('div');
+    rz.className = 'chart-resizer';
+    rz.onmousedown = (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      chartResize = { ch, box, canvas, startX: e.clientX, startY: e.clientY, startW: ch.w, startH: ch.h };
+    };
+    box.appendChild(rz);
+    container.appendChild(box);
+    requestAnimationFrame(()=>drawChart(canvas, ch, false));
+  });
+}
+function doChartDrag(e){
+  if(!chartDrag) return;
+  const { ch, box, startX, startY, startL, startT } = chartDrag;
+  ch.x = Math.max(0, startL + (e.clientX - startX));
+  ch.y = Math.max(0, startT + (e.clientY - startY));
+  box.style.left = ch.x + 'px';
+  box.style.top = ch.y + 'px';
+}
+function endChartDrag(){
+  if(!chartDrag) return;
+  chartDrag.box.classList.remove('dragging');
+  chartDrag = null;
+  pushHistory(); save();
+}
+function doChartResize(e){
+  if(!chartResize) return;
+  const { ch, box, canvas, startX, startY, startW, startH } = chartResize;
+  ch.w = Math.max(220, startW + (e.clientX - startX));
+  ch.h = Math.max(160, startH + (e.clientY - startY));
+  box.style.width = ch.w + 'px';
+  box.style.height = ch.h + 'px';
+  requestAnimationFrame(()=>drawChart(canvas, ch, false));
+}
+function endChartResize(){
+  if(!chartResize) return;
+  chartResize = null;
+  pushHistory(); save();
+}
+
+/* Desktop events */
+function bindDesktopEvents(){
+  document.getElementById('sheetWrap').addEventListener('mousedown', e=>{
+    if(e.target.closest('.chart-box')) return;
+    const td = e.target.closest('#grid td');
+    if(td && !e.target.classList.contains('fill-handle')){
+      if(editing) commitEdit();
+      const r = +td.dataset.r, c = +td.dataset.c;
+      window._desktopDragging = true;
+      if(e.shiftKey){ sel.r2 = r; sel.c2 = c; }
+      else{ sel = {r1:r,c1:c,r2:r,c2:c}; }
+      renderAll();
+      e.preventDefault();
+    }
+  });
+  document.addEventListener('mousemove', e=>{
+    if(window._desktopDragging){
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const td = el && el.closest ? el.closest('#grid td') : null;
+      if(td){
+        const r = +td.dataset.r, c = +td.dataset.c;
+        if(sel.r2!==r || sel.c2!==c){ sel.r2 = r; sel.c2 = c; renderAll(); }
+      }
+    }
+    if(resizing) doResize(e);
+    if(filling) doFill(e);
+    if(chartDrag) doChartDrag(e);
+    if(chartResize) doChartResize(e);
+  });
+  document.addEventListener('mouseup', ()=>{
+    window._desktopDragging = false;
+    if(resizing) endResize();
+    if(filling) endFill();
+    if(chartDrag) endChartDrag();
+    if(chartResize) endChartResize();
+  });
+  document.addEventListener('dblclick', e=>{
+    const td = e.target.closest('#grid td');
+    if(td) beginEdit(+td.dataset.r, +td.dataset.c);
+  });
+}
+function bindDesktopKeyboard(){
+  document.addEventListener('keydown', e=>{
+    if(currentMode !== 'desktop') return;
+    if(editing){
+      if(e.key === 'Enter'){ e.preventDefault(); commitEdit(); selectCell(Math.min(ROWS-1,sel.r1+1), sel.c1); }
+      else if(e.key === 'Escape'){ e.preventDefault(); cancelEdit(); }
+      else if(e.key === 'Tab'){
+        e.preventDefault(); commitEdit();
+        const nc = e.shiftKey ? Math.max(0,sel.c1-1) : Math.min(COLS-1,sel.c1+1);
+        selectCell(sel.r1, nc);
+      }
+      return;
+    }
+    if(document.activeElement.tagName === 'INPUT'){
+      if(e.key==='Escape') document.activeElement.blur();
+      return;
+    }
+    if(e.ctrlKey || e.metaKey){
+      const k = e.key.toLowerCase();
+      if(k==='z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+      if(k==='y'){ e.preventDefault(); redo(); return; }
+      if(k==='c'){ e.preventDefault(); doCopy(); return; }
+      if(k==='x'){ e.preventDefault(); doCut(); return; }
+      if(k==='v'){ e.preventDefault(); doPaste(); return; }
+      if(k==='b'){ e.preventDefault(); toggleStyle('bold'); return; }
+      if(k==='i'){ e.preventDefault(); toggleStyle('italic'); return; }
+      if(k==='u'){ e.preventDefault(); toggleStyle('underline'); return; }
+      if(k==='a'){ e.preventDefault(); selectAll(); return; }
+      if(k==='p'){ e.preventDefault(); openPrintModal(); return; }
+      if(k==='s'){ e.preventDefault(); save(); toast('Сохранено'); return; }
+      return;
+    }
+    const r = sel.r1, c = sel.c1;
+    const move = (dr,dc,extend)=>{
+      const nr = Math.max(0,Math.min(ROWS-1,r+dr));
+      const nc = Math.max(0,Math.min(COLS-1,c+dc));
+      selectCell(nr,nc,extend);
+      const td = document.querySelector(`#grid td[data-r="${nr}"][data-c="${nc}"]`);
+      if(td) td.scrollIntoView({block:'nearest', inline:'nearest'});
+    };
+    switch(e.key){
+      case 'ArrowUp':    e.preventDefault(); move(-1,0,e.shiftKey); break;
+      case 'ArrowDown':  e.preventDefault(); move(1,0,e.shiftKey); break;
+      case 'ArrowLeft':  e.preventDefault(); move(0,-1,e.shiftKey); break;
+      case 'ArrowRight': e.preventDefault(); move(0,1,e.shiftKey); break;
+      case 'Tab':        e.preventDefault(); move(0, e.shiftKey?-1:1, false); break;
+      case 'Enter':      e.preventDefault(); move(e.shiftKey?-1:1, 0, false); break;
+      case 'Home':       e.preventDefault(); selectCell(r, 0); break;
+      case 'End':        e.preventDefault(); selectCell(r, COLS-1); break;
+      case 'PageUp':     e.preventDefault(); move(-15,0,false); break;
+      case 'PageDown':   e.preventDefault(); move(15,0,false); break;
+      case 'F2':         e.preventDefault(); beginEdit(r,c); break;
+      case 'Delete':
+      case 'Backspace': {
+        e.preventDefault();
+        const sheet = sheets[activeSheet];
+        for(let rr=sel.r1;rr<=sel.r2;rr++)
+          for(let cc=sel.c1;cc<=sel.c2;cc++){
+            const id = cellId(rr,cc);
+            delete sheet.cells[id]; delete sheet.styles[id];
+          }
+        pushHistory(); refreshAll();
+        break;
+      }
+      default:
+        if(e.key.length === 1){ e.preventDefault(); beginEdit(r,c,e.key); }
+    }
+  });
+}
+
+/* Tabs (desktop) */
+function renderTabs(){
+  const list = document.getElementById('tabsList');
+  if(!list) return;
+  list.innerHTML = '';
+  sheets.forEach((_,i)=>{
+    const t = document.createElement('div');
+    t.className = 'tab' + (i===activeSheet ? ' active' : '');
+    t.innerHTML = `Лист${i+1}` + (sheets.length>1 ? '<span class="x">×</span>' : '');
+    t.onclick = (e)=>{
+      if(e.target.classList.contains('x')){
+        e.stopPropagation();
+        if(!confirm(`Удалить Лист${i+1}?`)) return;
+        sheets.splice(i,1);
+        if(activeSheet >= sheets.length) activeSheet = sheets.length-1;
+        pushHistory(); refreshAll();
+        return;
+      }
+      activeSheet = i;
+      refreshAll();
+    };
+    list.appendChild(t);
+  });
+}
+
+/* Desktop modals */
+function openFunctionModal(){
+  document.getElementById('modalBg').classList.add('on');
+  document.getElementById('fnArg').focus();
+}
+function openChartModal(){
+  const s = norm(sel);
+  document.getElementById('chartRange').value = `${cellId(s.r1,s.c1)}:${cellId(s.r2,s.c2)}`;
+  document.getElementById('chartModalBg').classList.add('on');
+}
+function openPrintModal(){
+  document.getElementById('printModalBg').classList.add('on');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ▓▓▓  MOBILE APP  ▓▓▓
+   ══════════════════════════════════════════════════════════════ */
+const M_ROWS = 100;
+const M_COLS = 12;
+
+function buildMobileTable(){
+  const tbl = document.getElementById('mGrid');
+  if(!tbl) return;
+  tbl.innerHTML = '';
+  const thead = document.createElement('thead');
+  const trh = document.createElement('tr');
+  const corner = document.createElement('th');
+  corner.className = 'corner';
+  trh.appendChild(corner);
+  for(let c=0;c<M_COLS;c++){
+    const th = document.createElement('th');
+    th.textContent = colName(c);
+    trh.appendChild(th);
+  }
+  thead.appendChild(trh);
+  tbl.appendChild(thead);
+  const tb = document.createElement('tbody');
+  for(let r=0;r<M_ROWS;r++){
+    const tr = document.createElement('tr');
+    const rh = document.createElement('th');
+    rh.className = 'row-h';
+    rh.textContent = r+1;
+    tr.appendChild(rh);
+    for(let c=0;c<M_COLS;c++){
+      const td = document.createElement('td');
+      td.dataset.r = r;
+      td.dataset.c = c;
+      td.dataset.id = cellId(r,c);
+      tr.appendChild(td);
+    }
+    tb.appendChild(tr);
+  }
+  tbl.appendChild(tb);
+}
+
+function renderMobileAll(){
+  const sheet = sheets[activeSheet];
+  const s = norm(sel);
+  document.querySelectorAll('#mGrid td').forEach(td=>{
+    const r = +td.dataset.r, c = +td.dataset.c, id = td.dataset.id;
+    if(editing && editing.r===r && editing.c===c) return;
+    const raw = sheet.cells[id] ?? '';
+    const val = computeValue(id, raw, new Set());
+    td.textContent = formatValue(val, sheet.styles[id]?.numFmt);
+    td.className = '';
+    if(raw.toString().startsWith('=')) td.classList.add('fml');
+    if(typeof val === 'number' && isFinite(val)) td.classList.add('num');
+    if(val === '#ОШИБКА!' || val === '#ЦИКЛ!' || val === '#ИМЯ?' || val === '#ДЕЛ/0!')
+      td.classList.add('err');
+    const st = sheet.styles[id] || {};
+    if(st.bold) td.classList.add('bold');
+    if(st.italic) td.classList.add('italic');
+    if(st.underline) td.classList.add('underline');
+    if(st.align === 'center') td.classList.add('center');
+    if(st.align === 'right') td.classList.add('right');
+    if(st.align === 'left') td.classList.add('left');
+    if(st.color) td.style.color = st.color; else td.style.color = '';
+    if(st.bg) td.style.background = st.bg; else td.style.background = '';
+    if(inSel(r,c,s)) td.classList.add('in-sel');
+    if(r===sel.r2 && c===sel.c2) td.classList.add('sel-anchor');
+  });
+  updateMobileFormulaBar();
+  renderMobileCharts();
+}
+
+function updateMobileFormulaBar(){
+  const id = cellId(sel.r1, sel.c1);
+  const ref = document.getElementById('mCellRef');
+  const inp = document.getElementById('mFormulaInput');
+  if(!ref || !inp) return;
+  const s = norm(sel);
+  if(s.r1===s.r2 && s.c1===s.c2){
+    ref.textContent = id;
+    if(document.activeElement !== inp) inp.value = sheets[activeSheet].cells[id] ?? '';
+  }else{
+    ref.textContent = `${cellId(s.r1,s.c1)}:${cellId(s.r2,s.c2)}`;
+    if(document.activeElement !== inp) inp.value = '';
+  }
+}
+
+function renderMobileSheets(){
+  const box = document.getElementById('mSheets');
+  if(!box) return;
+  box.innerHTML = '';
+  sheets.forEach((_,i)=>{
+    const t = document.createElement('div');
+    t.className = 'm-tab' + (i===activeSheet ? ' active' : '');
+    t.innerHTML = `Лист${i+1}` + (sheets.length>1 ? '<span class="x">×</span>' : '');
+    t.onclick = (e)=>{
+      if(e.target.classList.contains('x')){
+        e.stopPropagation();
+        if(!confirm(`Удалить Лист${i+1}?`)) return;
+        sheets.splice(i,1);
+        if(activeSheet >= sheets.length) activeSheet = sheets.length-1;
+        pushHistory(); refreshAll();
+        return;
+      }
+      activeSheet = i;
+      refreshAll();
+    };
+    box.appendChild(t);
+  });
+  const add = document.createElement('button');
+  add.className = 'm-tab-add';
+  add.textContent = '+';
+  add.onclick = ()=>{
+    if(sheets.length >= 10) return toast('Максимум 10 листов');
+    sheets.push(newSheet()); activeSheet = sheets.length-1;
+    pushHistory(); refreshAll();
+  };
+  box.appendChild(add);
+}
+
+/* Mobile charts */
+function renderMobileCharts(){
+  const container = document.getElementById('mGridInner');
+  if(!container) return;
+  container.querySelectorAll('.m-chart-box').forEach(el=>el.remove());
+  const charts = sheets[activeSheet].charts || [];
+  charts.forEach(ch => {
+    const box = document.createElement('div');
+    box.className = 'm-chart-box';
+    box.dataset.chartId = ch.id;
+    box.style.left = (ch.x || 20) + 'px';
+    box.style.top = (ch.y || 20) + 'px';
+    box.style.width = Math.min(ch.w || 300, window.innerWidth - 24) + 'px';
+    box.style.height = (ch.h || 220) + 'px';
+    const hd = document.createElement('div');
+    hd.className = 'm-chart-header';
+    hd.innerHTML = `<span>${ch.type === 'bar' ? '📊' : ch.type === 'line' ? '📈' : '🥧'} ${ch.range}</span>`;
+    const close = document.createElement('span');
+    close.className = 'close';
+    close.textContent = '×';
+    close.onclick = ()=>{
+      if(confirm('Удалить диаграмму?')) removeChart(ch.id);
+    };
+    hd.appendChild(close);
+    box.appendChild(hd);
+    const body = document.createElement('div');
+    body.className = 'm-chart-body';
+    const canvas = document.createElement('canvas');
+    body.appendChild(canvas);
+    box.appendChild(body);
+    container.appendChild(box);
+    requestAnimationFrame(()=>drawChart(canvas, ch, true));
+  });
+}
+
+/* Mobile sheet content */
+function openMobileSheet(title, content){
+  const bg = document.getElementById('mSheetBg');
+  const box = document.getElementById('mSheetContent');
+  box.innerHTML = '';
+  if(title){
+    const t = document.createElement('div');
+    t.className = 'm-sheet-title';
+    t.textContent = title;
+    box.appendChild(t);
+  }
+  content(box);
+  bg.classList.add('on');
+}
+function closeMobileSheet(){
+  document.getElementById('mSheetBg').classList.remove('on');
+}
+function mobileMenuItem(icon, label, sub, action, danger){
+  const item = document.createElement('div');
+  item.className = 'm-sheet-item' + (danger ? ' danger' : '');
+  item.innerHTML = `<div class="mi-icon">${icon}</div><div class="mi-label">${label}${sub ? `<div class="mi-sub">${sub}</div>` : ''}</div>`;
+  item.onclick = ()=>{ closeMobileSheet(); setTimeout(action, 100); };
+  return item;
+}
+
+/* Mobile edit overlay */
+function openMobileEdit(r, c, initial){
+  editing = { r, c };
+  const overlay = document.getElementById('mEditOverlay');
+  const inp = document.getElementById('mEditInput');
+  const id = cellId(r,c);
+  const raw = sheets[activeSheet].cells[id] ?? '';
+  inp.value = initial !== undefined ? initial : raw;
+  overlay.classList.add('on');
+  setTimeout(()=>{
+    inp.focus();
+    if(initial !== undefined) inp.setSelectionRange(inp.value.length, inp.value.length);
+    else inp.select();
+  }, 120);
+}
+function closeMobileEdit(commit){
+  const inp = document.getElementById('mEditInput');
+  if(commit && editing){
+    const id = cellId(editing.r, editing.c);
+    const text = inp.value;
+    const sheet = sheets[activeSheet];
+    if(text === '') delete sheet.cells[id];
+    else sheet.cells[id] = text;
+    pushHistory();
+  }
+  editing = null;
+  document.getElementById('mEditOverlay').classList.remove('on');
+  refreshAll();
+}
+
+/* Mobile events */
+function bindMobileEvents(){
+  const gridWrap = document.getElementById('mGridWrap');
+  if(!gridWrap) return;
+  gridWrap.addEventListener('click', e=>{
+    const td = e.target.closest('#mGrid td');
+    if(!td) return;
+    if(editing) return;
+    const r = +td.dataset.r, c = +td.dataset.c;
+    sel = {r1:r,c1:c,r2:r,c2:c};
+    renderMobileAll();
+  });
+  gridWrap.addEventListener('dblclick', e=>{
+    const td = e.target.closest('#mGrid td');
+    if(!td) return;
+    openMobileEdit(+td.dataset.r, +td.dataset.c);
+  });
+
+  // top bar
+  document.getElementById('mMenuBtn').onclick = ()=>openMobileMenu();
+  document.getElementById('mStyleBtn').onclick = ()=>openMobileStyles();
+  document.getElementById('mFxBtn').onclick = ()=>{
+    const s = norm(sel);
+    openFunctionModalMobile();
+  };
+
+  // formula input
+  const fi = document.getElementById('mFormulaInput');
+  fi.addEventListener('focus', ()=>{
+    const id = cellId(sel.r1, sel.c1);
+    fi.value = sheets[activeSheet].cells[id] ?? '';
+  });
+  fi.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      const id = cellId(sel.r1, sel.c1);
+      const sheet = sheets[activeSheet];
+      const val = fi.value;
+      if(val === '') delete sheet.cells[id];
+      else sheet.cells[id] = val;
+      pushHistory(); refreshAll();
+      fi.blur();
+    } else if(e.key === 'Escape'){ fi.blur(); }
+  });
+  fi.addEventListener('blur', ()=>{
+    updateMobileFormulaBar();
+  });
+
+  // bottom bar
+  document.querySelectorAll('.m-bb').forEach(btn=>{
+    btn.onclick = ()=>{
+      const action = btn.dataset.action;
+      if(action === 'undo') undo();
+      else if(action === 'redo') redo();
+      else if(action === 'edit'){
+        const s = norm(sel);
+        openMobileEdit(s.r1, s.c1);
+      }
+      else if(action === 'chart') openMobileChartMenu();
+      else if(action === 'more') openMobileMore();
+    };
+  });
+
+  // edit overlay
+  document.getElementById('mEditCancel').onclick = ()=>closeMobileEdit(false);
+  document.getElementById('mEditOk').onclick = ()=>closeMobileEdit(true);
+  document.getElementById('mEditInput').addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){ e.preventDefault(); closeMobileEdit(true); }
+    else if(e.key === 'Escape'){ e.preventDefault(); closeMobileEdit(false); }
+  });
+
+  // sheet bg
+  document.getElementById('mSheetBg').onclick = closeMobileSheet;
+}
+
+function openMobileMenu(){
+  openMobileSheet('Меню', box => {
+    box.appendChild(mobileMenuItem('📊', 'Вставить диаграмму', 'Столбчатая, линейная, круговая', ()=>openMobileChartMenu()));
+    box.appendChild(mobileMenuItem('🖨', 'Печать', 'CSV, PDF через печать', ()=>openPrintModal()));
+    box.appendChild(mobileMenuItem('⬇', 'Экспорт CSV', 'Скачать таблицу', ()=>exportCSV()));
+    box.appendChild(mobileMenuItem('⬇', 'Экспорт JSON', 'Полный бэкап', ()=>exportJSON()));
+    box.appendChild(mobileMenuItem('📋', 'Копировать', 'В буфер обмена', ()=>doCopy()));
+    box.appendChild(mobileMenuItem('✂️', 'Вырезать', '', ()=>doCut()));
+    box.appendChild(mobileMenuItem('📄', 'Вставить', 'Из буфера', ()=>doPaste()));
+    box.appendChild(mobileMenuItem('Σ', 'Автосумма', 'Сумма выделенного', ()=>{
+      const s = norm(sel);
+      const targetId = cellId(s.r2+1, s.c1);
+      if(s.r2+1 >= ROWS) return toast('Нельзя вставить ниже');
+      sheets[activeSheet].cells[targetId] = `=SUM(${cellId(s.r1,s.c1)}:${cellId(s.r2,s.c2)})`;
+      pushHistory(); refreshAll();
+      toast('Сумма вставлена');
+    }));
+    box.appendChild(mobileMenuItem('🗑', 'Очистить ячейку', 'Удалить содержимое', ()=>{
+      const s = norm(sel);
+      for(let r=s.r1;r<=s.r2;r++) for(let c=s.c1;c<=s.c2;c++){
+        const id = cellId(r,c);
+        delete sheets[activeSheet].cells[id];
+        delete sheets[activeSheet].styles[id];
+      }
+      pushHistory(); refreshAll();
+    }));
+    box.appendChild(mobileMenuItem('⚙️', 'Сменить версию', 'На компьютерную', ()=>chooseMode(null)));
+    box.appendChild(mobileMenuItem('🗑', 'Сбросить лист', 'Удалить всё содержимое', ()=>{
+      if(!confirm('Очистить лист? Действие можно отменить.')) return;
+      sheets[activeSheet] = newSheet();
+      pushHistory(); refreshAll();
+    }, true));
+  });
+}
+
+function openMobileStyles(){
+  openMobileSheet('Формат ячейки', box => {
+    const grid = document.createElement('div');
+    grid.className = 'm-style-grid';
+    const id = cellId(sel.r1, sel.c1);
+    const st = sheets[activeSheet].styles[id] || {};
+    const items = [
+      { key:'bold', label:'Жирный', ico:'𝐁', active: !!st.bold },
+      { key:'italic', label:'Курсив', ico:'𝐼', active: !!st.italic },
+      { key:'underline', label:'Подчёрк.', ico:'U', active: !!st.underline },
+      { key:'align-left', label:'Влево', ico:'⬅', active: st.align === 'left' },
+      { key:'align-center', label:'Центр', ico:'⬌', active: st.align === 'center' },
+      { key:'align-right', label:'Вправо', ico:'➡', active: st.align === 'right' },
+      { key:'currency', label:'₽ Формат', ico:'₽', active: st.numFmt === 'currency' },
+      { key:'percent', label:'% Формат', ico:'%', active: st.numFmt === 'percent' },
+    ];
+    items.forEach(it=>{
+      const btn = document.createElement('button');
+      btn.className = 'm-style-btn' + (it.active ? ' active' : '');
+      btn.innerHTML = `<span>${it.ico}</span><span class="lbl">${it.label}</span>`;
+      btn.onclick = ()=>{
+        if(it.key === 'bold') toggleStyle('bold');
+        else if(it.key === 'italic') toggleStyle('italic');
+        else if(it.key === 'underline') toggleStyle('underline');
+        else if(it.key === 'align-left') applyStyle({align:'left'});
+        else if(it.key === 'align-center') applyStyle({align:'center'});
+        else if(it.key === 'align-right') applyStyle({align:'right'});
+        else if(it.key === 'currency') applyStyle({numFmt:'currency'});
+        else if(it.key === 'percent') applyStyle({numFmt:'percent'});
+        closeMobileSheet();
+        setTimeout(()=>openMobileStyles(), 150);
+      };
+      grid.appendChild(btn);
+    });
+    box.appendChild(grid);
+    const colors = document.createElement('div');
+    colors.className = 'm-style-grid';
+    const palette = ['#217346','#c62828','#1976d2','#f9a825','#6a1b9a','#00838f','#5d4037','#424242'];
+    palette.forEach(col => {
+      const b = document.createElement('button');
+      b.className = 'm-style-btn';
+      b.innerHTML = `<span style="color:${col};font-weight:800">A</span><span class="lbl">Цвет</span>`;
+      b.onclick = ()=>{ applyStyle({color:col}); closeMobileSheet(); };
+      colors.appendChild(b);
+    });
+    box.appendChild(colors);
+  });
+}
+
+function openMobileChartMenu(){
+  const s = norm(sel);
+  const range = `${cellId(s.r1,s.c1)}:${cellId(s.r2,s.c2)}`;
+  openMobileSheet('Диаграмма', box => {
+    box.appendChild(mobileMenuItem('📊', 'Столбчатая', `Диапазон ${range}`, ()=>{
+      const data = extractChartData(range);
+      if(!data.values.length){ toast('Нет чисел в диапазоне'); return; }
+      addMobileChart('bar', range);
+    }));
+    box.appendChild(mobileMenuItem('📈', 'Линейная', `Диапазон ${range}`, ()=>{
+      const data = extractChartData(range);
+      if(!data.values.length){ toast('Нет чисел в диапазоне'); return; }
+      addMobileChart('line', range);
+    }));
+    box.appendChild(mobileMenuItem('🥧', 'Круговая', `Диапазон ${range}`, ()=>{
+      const data = extractChartData(range);
+      if(!data.values.length){ toast('Нет чисел в диапазоне'); return; }
+      addMobileChart('pie', range);
+    }));
+    const hint = document.createElement('div');
+    hint.style.cssText = 'padding:12px 20px;font-size:12px;color:var(--text2);line-height:1.5';
+    hint.innerHTML = '<b>Как построить:</b> выделите диапазон с числами (например A1:B10). Если два столбца — 1-й будет подписями, 2-й значениями.';
+    box.appendChild(hint);
+  });
+}
+
+function addMobileChart(type, range){
+  const ch = {
+    id: 'ch_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    type, range,
+    x: 16, y: 16,
+    w: Math.min(window.innerWidth - 40, 340),
+    h: 220
+  };
+  sheets[activeSheet].charts.push(ch);
+  pushHistory(); refreshAll();
+  toast('Диаграмма добавлена');
+}
+
+function openMobileMore(){
+  openMobileSheet('Дополнительно', box => {
+    box.appendChild(mobileMenuItem('＋', 'Вставить строку выше', '', ()=>{
+      insertRow(sel.r1); pushHistory(); refreshAll();
+    }));
+    box.appendChild(mobileMenuItem('＋', 'Вставить строку ниже', '', ()=>{
+      insertRow(sel.r2+1); pushHistory(); refreshAll();
+    }));
+    box.appendChild(mobileMenuItem('−', 'Удалить строку', '', ()=>{
+      for(let r=sel.r2;r>=sel.r1;r--) deleteRow(r);
+      pushHistory(); refreshAll();
+    }));
+    box.appendChild(mobileMenuItem('＋', 'Вставить столбец слева', '', ()=>{
+      insertCol(sel.c1); pushHistory(); refreshAll();
+    }));
+    box.appendChild(mobileMenuItem('−', 'Удалить столбец', '', ()=>{
+      for(let c=sel.c2;c>=sel.c1;c--) deleteCol(c);
+      pushHistory(); refreshAll();
+    }));
+    box.appendChild(mobileMenuItem('Σ', 'Вставить SUM', 'Автосумма', ()=>{
+      const s = norm(sel);
+      sheets[activeSheet].cells[cellId(s.r2+1, s.c1)] = `=SUM(${cellId(s.r1,s.c1)}:${cellId(s.r2,s.c2)})`;
+      pushHistory(); refreshAll();
+    }));
+    box.appendChild(mobileMenuItem('↺', 'Отменить', '', ()=>undo()));
+    box.appendChild(mobileMenuItem('↻', 'Повторить', '', ()=>redo()));
+    box.appendChild(mobileMenuItem('🖨', 'Печать', '', ()=>openPrintModal()));
+    box.appendChild(mobileMenuItem('⬇', 'Экспорт CSV', '', ()=>exportCSV()));
+    box.appendChild(mobileMenuItem('⬇', 'Экспорт JSON', '', ()=>exportJSON()));
+    box.appendChild(mobileMenuItem('🖥️', 'Компьютерная версия', 'Сменить режим', ()=>chooseMode(null)));
+    box.appendChild(mobileMenuItem('🗑', 'Сбросить лист', '', ()=>{
+      if(!confirm('Очистить лист?')) return;
+      sheets[activeSheet] = newSheet();
+      pushHistory(); refreshAll();
+    }, true));
+  });
+}
+
+function openFunctionModalMobile(){
+  const bg = document.getElementById('modalBg');
+  bg.classList.add('on');
+  document.getElementById('fnArg').focus();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ═══════════ ВЫБОР РЕЖИМА И СТАРТОВЫЙ ЭКРАН ═══════════
+   ══════════════════════════════════════════════════════════════ */
+function chooseMode(mode){
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('switchVersion').style.display = 'flex';
+  document.getElementById('desktopApp').classList.toggle('on', mode === 'desktop');
+  document.getElementById('mobileApp').classList.toggle('on', mode === 'mobile');
+  currentMode = mode;
+  document.getElementById('switchText').textContent = mode === 'desktop' ? '📱 Мобильная' : '🖥️ ПК';
+  // Init both so switching is fast
+  if(mode === 'desktop'){
+    buildTable(); renderAll(); renderTabs();
+  }else{
+    buildMobileTable(); renderMobileAll(); renderMobileSheets();
+  }
+  const remember = document.getElementById('rememberChoice').checked;
+  if(remember){
+    localStorage.setItem(MODE_KEY, mode);
+    localStorage.setItem(MODE_KEY_REMEMBER, '1');
+  }else{
+    localStorage.removeItem(MODE_KEY);
+    localStorage.removeItem(MODE_KEY_REMEMBER);
+  }
+}
+
+function showStartScreen(){
+  document.getElementById('startScreen').style.display = 'flex';
+  document.getElementById('switchVersion').style.display = 'none';
+  document.getElementById('desktopApp').classList.remove('on');
+  document.getElementById('mobileApp').classList.remove('on');
+  const remember = localStorage.getItem(MODE_KEY_REMEMBER) === '1';
+  document.getElementById('rememberChoice').checked = remember;
+}
+
+/* Start screen buttons */
+document.querySelectorAll('.start-choice').forEach(btn => {
+  btn.onclick = ()=>chooseMode(btn.dataset.mode);
+});
+
+document.getElementById('switchVersion').onclick = ()=>{
+  const next = currentMode === 'desktop' ? 'mobile' : 'desktop';
+  chooseMode(next);
+  toast(next === 'mobile' ? '📱 Мобильная версия' : '🖥️ Компьютерная версия');
+};
+
+/* Modal events (общие) */
+document.getElementById('fnCancel').onclick = ()=>document.getElementById('modalBg').classList.remove('on');
+document.getElementById('fnOk').onclick = ()=>{
+  const fn = document.getElementById('fnSelect').value;
+  const arg = document.getElementById('fnArg').value.trim();
+  sheets[activeSheet].cells[cellId(sel.r1, sel.c1)] = `=${fn}(${arg})`;
+  document.getElementById('modalBg').classList.remove('on');
+  pushHistory(); refreshAll();
+};
+document.getElementById('modalBg').onclick = e=>{ if(e.target===document.getElementById('modalBg')) e.target.classList.remove('on'); };
+
+document.getElementById('chartCancel').onclick = ()=>document.getElementById('chartModalBg').classList.remove('on');
+document.getElementById('chartOk').onclick = ()=>{
+  const range = document.getElementById('chartRange').value.trim();
+  const type = document.querySelector('.chart-opt.selected').dataset.type;
+  insertChart(type, range);
+  document.getElementById('chartModalBg').classList.remove('on');
+};
+document.getElementById('chartModalBg').onclick = e=>{ if(e.target===document.getElementById('chartModalBg')) e.target.classList.remove('on'); };
+document.getElementById('chartPicker').addEventListener('click', e=>{
+  const opt = e.target.closest('.chart-opt');
+  if(!opt) return;
+  document.querySelectorAll('.chart-opt').forEach(el=>el.classList.toggle('selected', el === opt));
+});
+
+document.getElementById('printCancel').onclick = ()=>document.getElementById('printModalBg').classList.remove('on');
+document.getElementById('printModalBg').onclick = e=>{ if(e.target===document.getElementById('printModalBg')) e.target.classList.remove('on'); };
+document.getElementById('printGo').onclick = ()=>{
+  const opts = {
+    orientation: document.getElementById('printOrient').value,
+    scale: parseFloat(document.getElementById('printScale').value),
+    grid: document.getElementById('printGrid').checked,
+    charts: document.getElementById('printCharts').checked,
+    headers: document.getElementById('printHeaders').checked,
+  };
+  document.getElementById('printModalBg').classList.remove('on');
+  setTimeout(()=>printSheet(opts), 100);
+};
+document.getElementById('printPreview').onclick = ()=>{
+  const opts = {
+    orientation: document.getElementById('printOrient').value,
+    scale: parseFloat(document.getElementById('printScale').value),
+    grid: document.getElementById('printGrid').checked,
+    charts: document.getElementById('printCharts').checked,
+    headers: document.getElementById('printHeaders').checked,
+  };
+  const { html, chartsList } = buildPrintableHTML(opts);
+  const w = window.open('', '_blank');
+  if(!w){ toast('Разрешите всплывающие окна'); return; }
+  const pageCss = opts.orientation === 'landscape'
+    ? '@page { size: A4 landscape; margin: 10mm; }'
+    : '@page { size: A4 portrait; margin: 10mm; }';
+  w.document.open();
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Предпросмотр</title><style>${pageCss}
+    body{margin:12px;background:#f3f3f3;font-family:Arial,sans-serif}
+    .paper{background:#fff;padding:20px;margin:0 auto;max-width:1100px;box-shadow:0 4px 18px rgba(0,0,0,.15)}</style></head><body><div class="paper">${html}</div></body></html>`);
+  w.document.close();
+  setTimeout(()=>{
+    chartsList.forEach(ch => {
+      const holder = w.document.querySelector(`[data-chart-id="${ch.id}"]`);
+      if(!holder) return;
+      const canvas = w.document.createElement('canvas');
+      const W = ch.w, H = ch.h - 24;
+      canvas.width = W * 2; canvas.height = H * 2;
+      canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+      holder.appendChild(canvas);
+      const ctx = canvas.getContext('2d'); ctx.scale(2,2);
+      const data = extractChartData(ch.range);
+      if(!data.values.length){ ctx.fillStyle='#999'; ctx.fillText('Нет данных', W/2, H/2); return; }
+      if(ch.type === 'bar') drawBarChart(ctx, W, H, data, 11);
+      else if(ch.type === 'line') drawLineChart(ctx, W, H, data, 11);
+      else drawPieChart(ctx, W, H, data, 11);
+    });
+  }, 100);
+};
+
+/* Desktop ribbon buttons */
+function bindDesktopRibbon(){
+  const bind = (id, fn) => { const el = document.getElementById(id); if(el) el.onclick = fn; };
+  bind('rb-bold', ()=>toggleStyle('bold'));
+  bind('rb-italic', ()=>toggleStyle('italic'));
+  bind('rb-underline', ()=>toggleStyle('underline'));
+  bind('rb-al', ()=>applyStyle({align:'left'}));
+  bind('rb-ac', ()=>applyStyle({align:'center'}));
+  bind('rb-ar', ()=>applyStyle({align:'right'}));
+  bind('rb-color', ()=>{ const c = prompt('Цвет текста (CSS):', '#c62828'); if(c) applyStyle({color:c}); });
+  bind('rb-bg', ()=>{ const c = prompt('Цвет фона (CSS):', '#e6f2ec'); if(c) applyStyle({bg:c}); });
+  bind('rb-dec+', ()=>{
+    const sheet = sheets[activeSheet]; const s = norm(sel);
+    for(let r=s.r1;r<=s.r2;r++) for(let c=s.c1;c<=s.c2;c++){
+      const id = cellId(r,c); const st = sheet.styles[id] || {};
+      st.numFmt = st.numFmt === 'number' ? 'currency' : 'number';
+      sheet.styles[id] = st;
+    }
+    pushHistory(); refreshAll();
+  });
+  bind('rb-dec-', ()=>{
+    const sheet = sheets[activeSheet]; const s = norm(sel);
+    for(let r=s.r1;r<=s.r2;r++) for(let c=s.c1;c<=s.c2;c++){
+      const id = cellId(r,c); const st = sheet.styles[id] || {};
+      st.numFmt = 'general'; sheet.styles[id] = st;
+    }
+    pushHistory(); refreshAll();
+  });
+  const ff = document.getElementById('rb-font'); if(ff) ff.onchange = e=>applyStyle({font:e.target.value});
+  const fs = document.getElementById('rb-size'); if(fs) fs.onchange = e=>applyStyle({size:+e.target.value});
+  const fn = document.getElementById('rb-numfmt'); if(fn) fn.onchange = e=>applyStyle({numFmt:e.target.value});
+  bind('rb-copy', doCopy);
+  bind('rb-cut', doCut);
+  bind('rb-paste', doPaste);
+  bind('rb-sum', ()=>{
+    const s = norm(sel);
+    if(s.r2+1 >= ROWS) return toast('Нельзя вставить ниже');
+    sheets[activeSheet].cells[cellId(s.r2+1, s.c1)] = `=SUM(${cellId(s.r1,s.c1)}:${cellId(s.r2,s.c2)})`;
+    pushHistory(); refreshAll();
+    selectCell(s.r2+1, s.c1);
+  });
+  bind('rb-insert-row', ()=>{ const s=norm(sel); for(let r=s.r2;r>=s.r1;r--) insertRow(r); pushHistory(); refreshAll(); });
+  bind('rb-insert-col', ()=>{ const s=norm(sel); for(let c=s.c2;c>=s.c1;c--) insertCol(c); pushHistory(); refreshAll(); });
+  bind('rb-del-row', ()=>{ const s=norm(sel); for(let r=s.r2;r>=s.r1;r--) deleteRow(r); pushHistory(); refreshAll(); });
+  bind('rb-del-col', ()=>{ const s=norm(sel); for(let c=s.c2;c>=s.c1;c--) deleteCol(c); pushHistory(); refreshAll(); });
+  bind('rb-chart-bar', ()=>insertChart('bar'));
+  bind('rb-chart-line', ()=>insertChart('line'));
+  bind('rb-chart-pie', ()=>insertChart('pie'));
+  bind('rb-chart-insert', openChartModal);
+  bind('rb-print', openPrintModal);
+  bind('rb-csv', exportCSV);
+  bind('rb-json', exportJSON);
+  bind('rb-reset', ()=>{
+    if(!confirm('Сбросить весь лист?')) return;
+    sheets[activeSheet] = newSheet();
+    pushHistory(); refreshAll();
+  });
+  const fxBtn = document.getElementById('fxBtn'); if(fxBtn) fxBtn.onclick = openFunctionModal;
+  const rbFx = document.getElementById('rb-fx'); if(rbFx) rbFx.onclick = openFunctionModal;
+  const nameBox = document.getElementById('nameBox'); if(nameBox){
+    nameBox.addEventListener('keydown', e=>{
+      if(e.key === 'Enter'){
+        const v = nameBox.value.trim().toUpperCase();
+        const p = parseId(v);
+        if(p && p.r<ROWS && p.c<COLS){
+          selectCell(p.r, p.c);
+          const td = document.querySelector(`#grid td[data-r="${p.r}"][data-c="${p.c}"]`);
+          if(td) td.scrollIntoView({block:'nearest', inline:'nearest'});
+        }
+        document.getElementById('formulaInput').focus();
+      }
+    });
+  }
+  const fi = document.getElementById('formulaInput'); if(fi){
+    fi.addEventListener('focus', ()=>{
+      fi.value = sheets[activeSheet].cells[cellId(sel.r1, sel.c1)] ?? '';
+    });
+    fi.addEventListener('keydown', e=>{
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        const id = cellId(sel.r1, sel.c1);
+        const val = fi.value;
+        const sheet = sheets[activeSheet];
+        if(val === '') delete sheet.cells[id];
+        else sheet.cells[id] = val;
+        pushHistory(); refreshAll();
+      } else if(e.key === 'Escape'){ fi.blur(); }
+    });
+    fi.addEventListener('blur', updateFormulaBar);
+  }
+  const tabAdd = document.getElementById('tabAdd');
+  if(tabAdd) tabAdd.onclick = ()=>{
+    if(sheets.length >= 10) return toast('Максимум 10 листов');
+    sheets.push(newSheet()); activeSheet = sheets.length-1;
+    pushHistory(); refreshAll();
+  };
+  const tabPrev = document.getElementById('tabPrev');
+  if(tabPrev) tabPrev.onclick = ()=>{ if(activeSheet > 0){ activeSheet--; refreshAll(); } };
+  const tabNext = document.getElementById('tabNext');
+  if(tabNext) tabNext.onclick = ()=>{ if(activeSheet < sheets.length-1){ activeSheet++; refreshAll(); } };
+  // Menubar
+  document.querySelectorAll('.m-item').forEach(el=>{
+    el.onclick = ()=>{
+      const m = el.dataset.menu;
+      if(m === 'file') showDesktopMenu(el, [
+        { label:'🖨 Печать…', kbd:'Ctrl+P', act: openPrintModal },
+        { label:'Экспорт CSV', act: exportCSV },
+        { label:'Экспорт JSON', act: exportJSON },
+        { sep:true },
+        { label:'Сбросить книгу', act: ()=>{
+          if(confirm('Сбросить всю книгу?')){
+            sheets=[newSheet()]; activeSheet=0;
+            pushHistory(); refreshAll();
+          }
+        }},
+      ]);
+      else if(m === 'edit') showDesktopMenu(el, [
+        { label:'Отменить', kbd:'Ctrl+Z', act: undo },
+        { label:'Повторить', kbd:'Ctrl+Y', act: redo },
+        { sep:true },
+        { label:'Копировать', kbd:'Ctrl+C', act: doCopy },
+        { label:'Вырезать', kbd:'Ctrl+X', act: doCut },
+        { label:'Вставить', kbd:'Ctrl+V', act: doPaste },
+      ]);
+      else if(m === 'insert') showDesktopMenu(el, [
+        { label:'📊 Столбчатая', act: ()=>insertChart('bar') },
+        { label:'📈 Линейная', act: ()=>insertChart('line') },
+        { label:'🥧 Круговая', act: ()=>insertChart('pie') },
+      ]);
+      else if(m === 'view') showDesktopMenu(el, [
+        { label:'🖨 Печать…', act: openPrintModal },
+        { label:'📱 Мобильная версия', act: ()=>{ chooseMode('mobile'); toast('📱 Мобильная версия'); } },
+      ]);
+      else if(m === 'format') showDesktopMenu(el, [
+        { label:'Жирный', kbd:'Ctrl+B', act: ()=>toggleStyle('bold') },
+        { label:'Курсив', kbd:'Ctrl+I', act: ()=>toggleStyle('italic') },
+        { label:'Подчёркнутый', kbd:'Ctrl+U', act: ()=>toggleStyle('underline') },
+      ]);
+      else if(m === 'data') showDesktopMenu(el, [
+        { label:'Автосумма', act: ()=>{
+          const s=norm(sel);
+          sheets[activeSheet].cells[cellId(s.r2+1,s.c1)] = `=SUM(${cellId(s.r1,s.c1)}:${cellId(s.r2,s.c2)})`;
+          pushHistory(); refreshAll();
+        }},
+      ]);
+    };
+  });
+}
+function showDesktopMenu(anchorEl, items){
+  const ctx = document.getElementById('ctxMenu');
+  ctx.innerHTML = '';
+  items.forEach(it=>{
+    if(it.sep){
+      const d = document.createElement('div'); d.className='sep'; ctx.appendChild(d);
+      return;
+    }
+    const d = document.createElement('div');
+    d.className = 'it';
+    d.innerHTML = `<span>${it.label}</span>${it.kbd ? `<span class="kbd">${it.kbd}</span>` : ''}`;
+    d.onclick = ()=>{ ctx.classList.remove('on'); it.act(); };
+    ctx.appendChild(d);
+  });
+  const r = anchorEl.getBoundingClientRect();
+  ctx.classList.add('on');
+  ctx.style.left = r.left + 'px';
+  ctx.style.top = r.bottom + 'px';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ЗАПУСК
+   ══════════════════════════════════════════════════════════════ */
+function boot(){
+  load();
+  bindDesktopEvents();
+  bindDesktopKeyboard();
+  bindDesktopRibbon();
+  bindMobileEvents();
+
+  // Context menu (desktop)
+  document.addEventListener('contextmenu', e=>{
+    if(currentMode !== 'desktop') return;
+    const chartBox = e.target.closest('.chart-box');
+    if(chartBox){
+      e.preventDefault();
+      const chId = chartBox.dataset.chartId;
+      const ch = (sheets[activeSheet].charts||[]).find(c=>c.id===chId);
+      if(ch) showDesktopMenuAt(e.clientX, e.clientY, [
+        { label:'📊 Столбчатая', act: ()=>{ ch.type='bar'; renderCharts(); pushHistory(); save(); } },
+        { label:'📈 Линейная', act: ()=>{ ch.type='line'; renderCharts(); pushHistory(); save(); } },
+        { label:'🥧 Круговая', act: ()=>{ ch.type='pie'; renderCharts(); pushHistory(); save(); } },
+        { sep:true },
+        { label:'Удалить', act: ()=>{ removeChart(ch.id); } },
+      ]);
+      return;
+    }
+    const td = e.target.closest('#grid td');
+    if(!td) return;
+    e.preventDefault();
+    if(!inSel(+td.dataset.r, +td.dataset.c, norm(sel))){
+      selectCell(+td.dataset.r, +td.dataset.c);
+    }
+    showDesktopMenuAt(e.clientX, e.clientY, [
+      { label:'Копировать', kbd:'Ctrl+C', act: doCopy },
+      { label:'Вырезать', kbd:'Ctrl+X', act: doCut },
+      { label:'Вставить', kbd:'Ctrl+V', act: doPaste, disabled: !clipboard },
+      { sep:true },
+      { label:'Очистить', kbd:'Del', act: ()=>{
+        const s=norm(sel);
+        for(let r=s.r1;r<=s.r2;r++) for(let c=s.c1;c<=s.c2;c++){
+          const id = cellId(r,c);
+          delete sheets[activeSheet].cells[id];
+          delete sheets[activeSheet].styles[id];
+        }
+        pushHistory(); refreshAll();
+      }},
+      { sep:true },
+      { label:'📊 Диаграмма', act: openChartModal },
+      { label:'🖨 Печать…', act: openPrintModal },
+      { sep:true },
+      { label:'Вставить строку выше', act: ()=>{ const s=norm(sel); for(let r=s.r2;r>=s.r1;r--) insertRow(r); pushHistory(); refreshAll(); }},
+      { label:'Удалить строку', act: ()=>{ const s=norm(sel); for(let r=s.r2;r>=s.r1;r--) deleteRow(r); pushHistory(); refreshAll(); }},
+      { label:'Вставить столбец', act: ()=>{ const s=norm(sel); for(let c=s.c2;c>=s.c1;c--) insertCol(c); pushHistory(); refreshAll(); }},
+      { label:'Удалить столбец', act: ()=>{ const s=norm(sel); for(let c=s.c2;c>=s.c1;c--) deleteCol(c); pushHistory(); refreshAll(); }},
+    ]);
+  });
+  document.addEventListener('click', ()=>{
+    const ctx = document.getElementById('ctxMenu');
+    if(ctx) ctx.classList.remove('on');
+  });
+
+  // Показываем стартовый экран или сразу режим
+  const remembered = localStorage.getItem(MODE_KEY);
+  const rememberOn = localStorage.getItem(MODE_KEY_REMEMBER) === '1';
+  if(rememberOn && remembered){
+    document.getElementById('rememberChoice').checked = true;
+    chooseMode(remembered);
+  }else{
+    showStartScreen();
+  }
+
+  // Клик по стартовому экрану (по фону) — ничего
+  window.addEventListener('resize', ()=>{
+    if(currentMode === 'desktop'){ positionFillHandle(); renderCharts(); }
+    else if(currentMode === 'mobile'){ renderMobileCharts(); }
+  });
+}
+function showDesktopMenuAt(x, y, items){
+  const ctx = document.getElementById('ctxMenu');
+  ctx.innerHTML = '';
+  items.forEach(it=>{
+    if(it.sep){
+      const d = document.createElement('div'); d.className='sep'; ctx.appendChild(d);
+      return;
+    }
+    const d = document.createElement('div');
+    d.className = 'it' + (it.disabled ? ' disabled' : '');
+    d.innerHTML = `<span>${it.label}</span>${it.kbd ? `<span class="kbd">${it.kbd}</span>` : ''}`;
+    if(!it.disabled) d.onclick = ()=>{ ctx.classList.remove('on'); it.act(); };
+    ctx.appendChild(d);
+  });
+  ctx.classList.add('on');
+  const mw = ctx.offsetWidth, mh = ctx.offsetHeight;
+  ctx.style.left = Math.min(x, window.innerWidth - mw - 4) + 'px';
+  ctx.style.top = Math.min(y, window.innerHeight - mh - 4) + 'px';
+}
+
+boot();
+setInterval(save, 8000);
+</script>
+</body>
+</html>
