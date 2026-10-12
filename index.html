@@ -2,8 +2,21 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Nitpad.ГЛК — Электронные таблицы</title>
+
+<!-- ═══════════ iOS PWA ═══════════ -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nitpad.ГЛК">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#217346">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" id="appleIcon" sizes="180x180">
+<link rel="apple-touch-icon" id="appleIcon152" sizes="152x152">
+<link rel="apple-touch-icon" id="appleIcon120" sizes="120x120">
+<link rel="icon" id="favicon" type="image/png">
+
 <style>
   :root{
     --bg:#f3f3f3; --surface:#fff; --border:#d4d4d4; --border-strong:#b8b8b8;
@@ -120,13 +133,14 @@
 
   /* ═══════════ ПЕРЕКЛЮЧАТЕЛЬ ВЕРСИЙ ═══════════ */
   .switch-version{
-    position:fixed; right:12px; top:12px; z-index:4000;
+    position:fixed; right:12px; bottom:12px; z-index:4000;
     background:rgba(255,255,255,.95); border:1px solid var(--border);
     border-radius:20px; padding:6px 12px; cursor:pointer;
     font-size:12px; color:var(--text2);
     box-shadow:0 4px 12px rgba(0,0,0,.12);
     display:flex; align-items:center; gap:6px;
     transition:.2s; backdrop-filter:blur(8px);
+    padding-bottom:calc(6px + env(safe-area-inset-bottom, 0));
   }
   .switch-version:hover{background:#fff; color:var(--accent)}
   .switch-version svg{width:14px;height:14px}
@@ -139,10 +153,12 @@
   .menubar{
     background:var(--accent); color:#fff; display:flex; align-items:center;
     padding:0 8px; height:32px; flex-shrink:0; gap:2px;
+    padding-top:env(safe-area-inset-top, 0);
+    height:calc(32px + env(safe-area-inset-top, 0));
   }
   .menubar .brand{font-weight:600;font-size:14px;padding:0 14px 0 6px;letter-spacing:.3px}
   .menubar .brand span{color:#a4d4b8;font-weight:400}
-  .menubar .m-item{padding:6px 10px;border-radius:var(--radius);cursor:pointer;font-size:12.5px}
+  .menubar .m-item{padding:6px 10px;border-radius:var(--radius);cursor:pointer;font-size:12.5px;user-select:none}
   .menubar .m-item:hover{background:rgba(255,255,255,.15)}
   .menubar .spacer{flex:1}
   .menubar .doc-name{font-size:12px;opacity:.85;padding-right:12px}
@@ -243,6 +259,17 @@
   td.right{text-align:right}
   td.left{text-align:left}
 
+  /* Картинки в ячейках */
+  td.has-img{text-align:center;padding:1px}
+  td img.cell-img{
+    max-height:calc(100% - 2px);
+    max-width:calc(100% - 2px);
+    vertical-align:middle;
+    pointer-events:none;
+    user-select:none;
+    -webkit-user-drag:none;
+  }
+
   .fill-handle{
     position:absolute;width:7px;height:7px;background:var(--accent);
     border:1px solid #fff;cursor:crosshair;z-index:10;display:none;
@@ -318,6 +345,8 @@
   .statusbar{
     background:var(--accent);color:#fff;display:flex;align-items:center;
     height:22px;padding:0 12px;font-size:11.5px;gap:16px;flex-shrink:0;
+    padding-bottom:env(safe-area-inset-bottom, 0);
+    height:calc(22px + env(safe-area-inset-bottom, 0));
   }
   .statusbar .grow{flex:1}
   .statusbar .stat{opacity:.95}
@@ -379,6 +408,7 @@
     position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(20px);
     background:#323232;color:#fff;padding:8px 18px;border-radius:4px;
     font-size:12.5px;opacity:0;transition:.25s;pointer-events:none;z-index:3000;
+    padding-bottom:calc(8px + env(safe-area-inset-bottom, 0));
   }
   .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -431,6 +461,7 @@
     flex:1; padding:8px 10px; font-size:13px; font-family:var(--mono);
     border:1px solid var(--border); border-radius:6px; outline:none;
     background:#f8f8f8; -webkit-appearance:none; color:var(--text);
+    min-width:0;
   }
   .m-formula-input:focus{
     border-color:var(--accent); background:#fff;
@@ -490,6 +521,8 @@
   .m-grid-wrap td.center{text-align:center}
   .m-grid-wrap td.right{text-align:right}
   .m-grid-wrap td.left{text-align:left}
+  .m-grid-wrap td.has-img{text-align:center;padding:1px}
+  .m-grid-wrap td img.cell-img{max-height:calc(100% - 2px);max-width:calc(100% - 2px);vertical-align:middle;pointer-events:none}
 
   /* Mobile bottom bar */
   .m-bottombar{
@@ -568,7 +601,7 @@
   .m-sheet-item.danger{color:var(--error)}
   .m-sheet-item.danger .mi-icon{color:var(--error)}
 
-  /* Mobile style bar (when style sheet opened) */
+  /* Mobile style grid */
   .m-style-grid{
     display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:12px 16px;
   }
@@ -596,6 +629,7 @@
     flex:1; padding:12px 14px; font-size:15px; font-family:var(--mono);
     border:2px solid var(--accent); border-radius:8px; outline:none;
     background:#fff; color:var(--text); -webkit-appearance:none;
+    min-width:0;
   }
   .m-edit-btn{
     padding:12px 16px; border-radius:8px; border:none; font-size:14px;
@@ -604,7 +638,7 @@
   .m-edit-btn.cancel{background:#f0f0f0; color:var(--text)}
   .m-edit-btn.ok{background:var(--accent); color:#fff}
 
-  /* Mobile chart hint */
+  /* Mobile chart */
   .m-chart-box{
     position:absolute; background:#fff; border:1px solid var(--border-strong);
     border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,.15);
@@ -622,12 +656,6 @@
   .m-chart-body{flex:1; position:relative; overflow:hidden}
   .m-chart-body canvas{display:block; width:100%; height:100%}
 
-  /* Mobile print/CSV options */
-  .m-section-title{
-    font-size:11px; font-weight:700; color:var(--accent-dark);
-    text-transform:uppercase; letter-spacing:1px; padding:12px 20px 6px;
-  }
-
   /* ═══════════ ПЕЧАТЬ ═══════════ */
   @media print {
     body { overflow: visible !important; height: auto !important; display: block !important; background: #fff !important; }
@@ -636,7 +664,7 @@
     .m-topbar, .m-formula-bar, .m-bottombar, .m-sheets,
     .fill-handle, .fill-preview, .ctx-menu, .modal-bg, .toast,
     .chart-header .chart-close, .col-resizer, .row-resizer,
-    .m-sheet-bg, .m-edit-overlay { display: none !important; }
+    .m-sheet-bg, .m-edit-overlay, #iosInstallHint { display: none !important; }
     .sheet-wrap, .m-grid-wrap { overflow: visible !important; height: auto !important; }
     .sheet-inner { display: block !important; }
     table { border-collapse: collapse !important; width: auto !important; }
@@ -650,6 +678,20 @@
     td.in-sel, td.sel-anchor { background: #fff !important; box-shadow: none !important; }
     .chart-box, .m-chart-box { box-shadow: none !important; border: 1px solid #999 !important; }
     @page { margin: 10mm; }
+  }
+
+  /* ═══════════ PWA (standalone) ═══════════ */
+  @media (display-mode: standalone) {
+    #switchVersion { display: none !important; }
+    body { overscroll-behavior-y: none; }
+  }
+  .start-choice, .rb, .m-btn, .m-bb, .switch-version {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .m-grid-wrap, .sheet-wrap {
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Адаптив */
@@ -709,7 +751,6 @@
 
 <!-- ═══════════ DESKTOP APP ═══════════ -->
 <div id="desktopApp">
-  <!-- Меню-бар -->
   <div class="menubar">
     <div class="brand">Nitpad<span>.ГЛК</span></div>
     <div class="m-item" data-menu="file">Файл</div>
@@ -722,7 +763,6 @@
     <div class="doc-name" id="docName">Книга1 — Nitpad.ГЛК</div>
   </div>
 
-  <!-- Лента -->
   <div class="ribbon">
     <div class="ribbon-group" data-label="Буфер">
       <button class="rb" id="rb-paste" title="Вставить (Ctrl+V)">📋</button>
@@ -739,9 +779,9 @@
         <option selected>12</option><option>14</option><option>16</option>
         <option>18</option><option>20</option><option>24</option><option>36</option>
       </select>
-      <button class="rb" id="rb-bold" title="Жирный"><b>Ж</b></button>
-      <button class="rb" id="rb-italic" title="Курсив"><i>К</i></button>
-      <button class="rb" id="rb-underline" title="Подчёркнутый"><u>Ч</u></button>
+      <button class="rb" id="rb-bold" title="Жирный (Ctrl+B)"><b>Ж</b></button>
+      <button class="rb" id="rb-italic" title="Курсив (Ctrl+I)"><i>К</i></button>
+      <button class="rb" id="rb-underline" title="Подчёркнутый (Ctrl+U)"><u>Ч</u></button>
       <button class="rb" id="rb-color" title="Цвет текста">A<span style="color:#c62828;font-weight:700">▬</span></button>
       <button class="rb" id="rb-bg" title="Цвет заливки">🪣</button>
     </div>
@@ -769,6 +809,10 @@
       <button class="rb" id="rb-del-row">−Строка</button>
       <button class="rb" id="rb-del-col">−Столбец</button>
     </div>
+    <div class="ribbon-group" data-label="Объекты">
+      <button class="rb wide" id="rb-image" title="Вставить картинку в ячейку">🖼 Картинка</button>
+      <button class="rb wide" id="rb-image-clear" title="Убрать картинку из ячейки">✖ Картинку</button>
+    </div>
     <div class="ribbon-group" data-label="Диаграммы">
       <button class="rb wide" id="rb-chart-bar" title="Столбчатая">📊 Столбч.</button>
       <button class="rb wide" id="rb-chart-line" title="Линейная">📈 Линия</button>
@@ -783,7 +827,6 @@
     </div>
   </div>
 
-  <!-- Строка формул -->
   <div class="formula-bar">
     <div class="name-box">
       <input type="text" id="nameBox" value="A1" spellcheck="false">
@@ -793,7 +836,6 @@
            placeholder="Введите значение или формулу (начните с =)" spellcheck="false" autocomplete="off">
   </div>
 
-  <!-- Таблица -->
   <div class="sheet-wrap" id="sheetWrap">
     <div class="sheet-inner" id="sheetInner">
       <table id="grid"></table>
@@ -802,7 +844,6 @@
     </div>
   </div>
 
-  <!-- Вкладки -->
   <div class="tabs-bar">
     <button class="tab-nav" id="tabPrev">◀</button>
     <button class="tab-nav" id="tabNext">▶</button>
@@ -810,7 +851,6 @@
     <button class="tab-add" id="tabAdd" title="Добавить лист">＋</button>
   </div>
 
-  <!-- Статус-бар -->
   <div class="statusbar">
     <span class="stat" id="statMode">Готово</span>
     <span class="grow"></span>
@@ -822,7 +862,6 @@
 
 <!-- ═══════════ MOBILE APP ═══════════ -->
 <div id="mobileApp">
-  <!-- Top bar -->
   <div class="m-topbar">
     <button class="m-btn" id="mMenuBtn" title="Меню">
       <svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
@@ -833,24 +872,20 @@
     </button>
   </div>
 
-  <!-- Formula bar -->
   <div class="m-formula-bar">
     <div class="m-cell-ref" id="mCellRef">A1</div>
     <input type="text" class="m-formula-input" id="mFormulaInput" placeholder="Значение или =формула" spellcheck="false" autocomplete="off">
     <button class="m-fx" id="mFxBtn" title="Функция">fx</button>
   </div>
 
-  <!-- Grid -->
   <div class="m-grid-wrap" id="mGridWrap">
     <div class="m-grid-inner" id="mGridInner" style="position:relative;display:inline-block;min-width:100%">
       <table id="mGrid"></table>
     </div>
   </div>
 
-  <!-- Sheets bar -->
   <div class="m-sheets" id="mSheets"></div>
 
-  <!-- Bottom bar -->
   <div class="m-bottombar">
     <button class="m-bb" data-action="undo" title="Отменить">
       <span class="icon">↶</span><span class="lbl">Отмена</span>
@@ -876,7 +911,7 @@
   <span id="switchText">Сменить версию</span>
 </button>
 
-<!-- Контекстное меню (desktop) -->
+<!-- Контекстное меню -->
 <div class="ctx-menu" id="ctxMenu"></div>
 
 <!-- Модалка функции -->
@@ -1002,7 +1037,7 @@
 
 <script>
 /* ══════════════════════════════════════════════════════════════
-   Nitpad.ГЛК — ядро (общее для обеих версий)
+   Nitpad.ГЛК — ядро
    ══════════════════════════════════════════════════════════════ */
 const ROWS = 200;
 const COLS = 26;
@@ -1021,7 +1056,6 @@ let colWidths = {};
 let rowHeights = {};
 let currentMode = null;
 
-/* Утилиты */
 const colName = (i) => {
   let s=''; i++;
   while(i>0){ const r=(i-1)%26; s=String.fromCharCode(65+r)+s; i=Math.floor((i-1)/26); }
@@ -1029,7 +1063,7 @@ const colName = (i) => {
 };
 const cellId = (r,c) => colName(c) + (r+1);
 const parseId = (id) => {
-  const m = id.match(/^([A-Z]+)(\d+)$/);
+  const m = String(id).match(/^([A-Z]+)(\d+)$/);
   if(!m) return null;
   const c = m[1].split('').reduce((a,ch)=>a*26+(ch.charCodeAt(0)-64),0)-1;
   return { r: parseInt(m[2],10)-1, c };
@@ -1039,21 +1073,24 @@ const norm = (s) => ({
   c1: Math.min(s.c1,s.c2), c2: Math.max(s.c1,s.c2),
 });
 const inSel = (r,c,s) => r>=s.r1 && r<=s.r2 && c>=s.c1 && c<=s.c2;
-const newSheet = () => ({ cells: {}, styles: {}, charts: [] });
+const newSheet = () => ({ cells: {}, styles: {}, charts: [], images: {} });
 
 function toast(msg){
   const el = document.getElementById('toast');
+  if(!el) return;
   el.textContent = msg; el.classList.add('on');
   clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('on'),1800);
 }
 
-/* Загрузка/сохранение */
 function load(){
-  const raw = localStorage.getItem(STORAGE_KEY);
+  let raw = null;
+  try { raw = localStorage.getItem(STORAGE_KEY); } catch(e){}
   if(raw){
     try{
       const o = JSON.parse(raw);
-      sheets = o.sheets.map(s=>({ cells:s.cells||{}, styles:s.styles||{}, charts:s.charts||[] }));
+      sheets = (o.sheets||[]).map(s=>({
+        cells:s.cells||{}, styles:s.styles||{}, charts:s.charts||[], images:s.images||{}
+      }));
       activeSheet = o.active|0;
       colWidths = o.colWidths || {}; rowHeights = o.rowHeights || {};
       if(!sheets.length) sheets=[newSheet()];
@@ -1067,7 +1104,10 @@ function save(){
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       sheets, active: activeSheet, colWidths, rowHeights
     }));
-  }catch(e){}
+  }catch(e){
+    // Скорее всего, переполнен localStorage картинками
+    toast('Не удалось сохранить: хранилище заполнено');
+  }
 }
 function pushHistory(){
   const snap = JSON.stringify({sheets,activeSheet,colWidths,rowHeights});
@@ -1118,7 +1158,10 @@ function computeValue(id, raw, visiting){
         return isNaN(n) ? 0 : n;
       }).join(',') + ']';
     });
-    expr = expr.replace(/(?<![A-Z0-9_])([A-Z]+\d+)(?![A-Z0-9_])/g, (m,ref)=>{
+    expr = expr.replace(/([A-Z]+)(\d+)/g, (m, col, row)=>{
+      const ref = col + row;
+      const p = parseId(ref);
+      if(!p || p.r < 0 || p.c < 0 || p.r >= ROWS || p.c >= COLS) return m;
       const v = computeValue(ref, sheets[activeSheet].cells[ref] ?? '', visiting);
       const n = Number(v);
       return isNaN(n) ? 0 : n;
@@ -1197,6 +1240,44 @@ function toggleStyle(key){
   applyStyle({ [key]: !st[key] });
 }
 
+/* ═══════════════ КАРТИНКИ В ЯЧЕЙКАХ ═══════════════ */
+function insertImageIntoCell(){
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.onchange = () => {
+    const file = inp.files && inp.files[0];
+    if(!file) return;
+    if(file.size > 1024 * 1024){
+      toast('Файл больше 1 МБ — сожмите перед вставкой');
+      return;
+    }
+    const r = new FileReader();
+    r.onload = (ev) => {
+      const sheet = sheets[activeSheet];
+      if(!sheet.images) sheet.images = {};
+      sheet.images[cellId(sel.r1, sel.c1)] = ev.target.result;
+      pushHistory();
+      refreshAll();
+      toast('Картинка вставлена');
+    };
+    r.readAsDataURL(file);
+  };
+  inp.click();
+}
+function clearImageFromCell(){
+  const sheet = sheets[activeSheet];
+  const s = norm(sel);
+  let removed = 0;
+  for(let r=s.r1;r<=s.r2;r++)
+    for(let c=s.c1;c<=s.c2;c++){
+      const id = cellId(r,c);
+      if(sheet.images && sheet.images[id]){ delete sheet.images[id]; removed++; }
+    }
+  if(removed){ pushHistory(); refreshAll(); toast('Убрано картинок: ' + removed); }
+  else toast('В выделении нет картинок');
+}
+
 /* ═══════════════ КОПИРОВАНИЕ ═══════════════ */
 function getSelMatrix(){
   const s = norm(sel);
@@ -1206,7 +1287,11 @@ function getSelMatrix(){
     const row = [];
     for(let c=s.c1;c<=s.c2;c++){
       const id = cellId(r,c);
-      row.push({ raw: sheet.cells[id] ?? '', style: sheet.styles[id] ? {...sheet.styles[id]} : null });
+      row.push({
+        raw: sheet.cells[id] ?? '',
+        style: sheet.styles[id] ? {...sheet.styles[id]} : null,
+        img: sheet.images && sheet.images[id] ? sheet.images[id] : null
+      });
     }
     m.push(row);
   }
@@ -1219,6 +1304,7 @@ function doPaste(){
   const sheet = sheets[activeSheet];
   const s = norm(sel);
   const m = clipboard.matrix;
+  if(!sheet.images) sheet.images = {};
   for(let i=0;i<m.length;i++){
     for(let j=0;j<m[i].length;j++){
       const dstR = s.r1 + i, dstC = s.c1 + j;
@@ -1231,6 +1317,8 @@ function doPaste(){
       else sheet.cells[dstId] = raw;
       if(m[i][j].style) sheet.styles[dstId] = {...m[i][j].style};
       else delete sheet.styles[dstId];
+      if(m[i][j].img) sheet.images[dstId] = m[i][j].img;
+      else delete sheet.images[dstId];
     }
   }
   if(clipboard.mode === 'cut'){
@@ -1239,6 +1327,7 @@ function doPaste(){
       for(let c=os.c1;c<=os.c2;c++){
         const id = cellId(r,c);
         delete sheet.cells[id]; delete sheet.styles[id];
+        if(sheet.images) delete sheet.images[id];
       }
     clipboard = null;
   }
@@ -1248,7 +1337,7 @@ function doPaste(){
 /* ═══════════════ ВСТАВКА/УДАЛЕНИЕ СТРОК-СТОЛБЦОВ ═══════════════ */
 function insertRow(at){
   const sheet = sheets[activeSheet];
-  const nc = {}, ns = {};
+  const nc = {}, ns = {}, ni = {};
   Object.keys(sheet.cells).forEach(id=>{
     const p = parseId(id); if(!p) return;
     const nr = p.r >= at ? p.r + 1 : p.r;
@@ -1261,12 +1350,18 @@ function insertRow(at){
     if(nr >= ROWS) return;
     ns[cellId(nr,p.c)] = sheet.styles[id];
   });
-  sheet.cells = nc; sheet.styles = ns;
+  Object.keys(sheet.images||{}).forEach(id=>{
+    const p = parseId(id); if(!p) return;
+    const nr = p.r >= at ? p.r + 1 : p.r;
+    if(nr >= ROWS) return;
+    ni[cellId(nr,p.c)] = sheet.images[id];
+  });
+  sheet.cells = nc; sheet.styles = ns; sheet.images = ni;
   const nh = {}; Object.keys(rowHeights).forEach(k=>{const r=+k;nh[r>=at?r+1:r]=rowHeights[k];}); rowHeights = nh;
 }
 function deleteRow(at){
   const sheet = sheets[activeSheet];
-  const nc = {}, ns = {};
+  const nc = {}, ns = {}, ni = {};
   Object.keys(sheet.cells).forEach(id=>{
     const p = parseId(id); if(!p || p.r === at) return;
     nc[cellId(p.r > at ? p.r-1 : p.r, p.c)] = sheet.cells[id];
@@ -1275,12 +1370,16 @@ function deleteRow(at){
     const p = parseId(id); if(!p || p.r === at) return;
     ns[cellId(p.r > at ? p.r-1 : p.r, p.c)] = sheet.styles[id];
   });
-  sheet.cells = nc; sheet.styles = ns;
+  Object.keys(sheet.images||{}).forEach(id=>{
+    const p = parseId(id); if(!p || p.r === at) return;
+    ni[cellId(p.r > at ? p.r-1 : p.r, p.c)] = sheet.images[id];
+  });
+  sheet.cells = nc; sheet.styles = ns; sheet.images = ni;
   const nh = {}; Object.keys(rowHeights).forEach(k=>{const r=+k;if(r===at)return;nh[r>at?r-1:r]=rowHeights[k];}); rowHeights = nh;
 }
 function insertCol(at){
   const sheet = sheets[activeSheet];
-  const nc = {}, ns = {};
+  const nc = {}, ns = {}, ni = {};
   Object.keys(sheet.cells).forEach(id=>{
     const p = parseId(id); if(!p) return;
     const ncol = p.c >= at ? p.c + 1 : p.c;
@@ -1293,12 +1392,18 @@ function insertCol(at){
     if(ncol >= COLS) return;
     ns[cellId(p.r,ncol)] = sheet.styles[id];
   });
-  sheet.cells = nc; sheet.styles = ns;
+  Object.keys(sheet.images||{}).forEach(id=>{
+    const p = parseId(id); if(!p) return;
+    const ncol = p.c >= at ? p.c + 1 : p.c;
+    if(ncol >= COLS) return;
+    ni[cellId(p.r,ncol)] = sheet.images[id];
+  });
+  sheet.cells = nc; sheet.styles = ns; sheet.images = ni;
   const nw = {}; Object.keys(colWidths).forEach(k=>{const c=+k;nw[c>=at?c+1:c]=colWidths[k];}); colWidths = nw;
 }
 function deleteCol(at){
   const sheet = sheets[activeSheet];
-  const nc = {}, ns = {};
+  const nc = {}, ns = {}, ni = {};
   Object.keys(sheet.cells).forEach(id=>{
     const p = parseId(id); if(!p || p.c === at) return;
     nc[cellId(p.r, p.c > at ? p.c-1 : p.c)] = sheet.cells[id];
@@ -1307,12 +1412,16 @@ function deleteCol(at){
     const p = parseId(id); if(!p || p.c === at) return;
     ns[cellId(p.r, p.c > at ? p.c-1 : p.c)] = sheet.styles[id];
   });
-  sheet.cells = nc; sheet.styles = ns;
+  Object.keys(sheet.images||{}).forEach(id=>{
+    const p = parseId(id); if(!p || p.c === at) return;
+    ni[cellId(p.r, p.c > at ? p.c-1 : p.c)] = sheet.images[id];
+  });
+  sheet.cells = nc; sheet.styles = ns; sheet.images = ni;
   const nw = {}; Object.keys(colWidths).forEach(k=>{const c=+k;if(c===at)return;nw[c>at?c-1:c]=colWidths[k];}); colWidths = nw;
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ДИАГРАММЫ (общие для обеих версий)
+   ДИАГРАММЫ
    ══════════════════════════════════════════════════════════════ */
 function extractChartData(range){
   const parts = range.split(':');
@@ -1475,6 +1584,7 @@ function drawBarChart(ctx, W, H, data, fs){
   });
 }
 function drawLineChart(ctx, W, H, data, fs){
+  const compact = fs < 11;
   const padL = 42, padR = 16, padT = 16, padB = 38;
   const cw = W - padL - padR, chh = H - padT - padB;
   const maxV = Math.max(...data.values, 0);
@@ -1592,7 +1702,7 @@ function drawPieChart(ctx, W, H, data, fs){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ПЕЧАТЬ (общая)
+   ПЕЧАТЬ
    ══════════════════════════════════════════════════════════════ */
 function buildPrintableHTML(opts){
   const sheet = sheets[activeSheet];
@@ -1630,6 +1740,7 @@ function buildPrintableHTML(opts){
       const raw = sheet.cells[id] ?? '';
       const v = computeValue(id, raw, new Set());
       const st = sheet.styles[id] || {};
+      const img = sheet.images && sheet.images[id];
       let style = `border:1px solid ${borderColor};padding:3px 6px;white-space:nowrap;`;
       if(st.bold) style += 'font-weight:600;';
       if(st.italic) style += 'font-style:italic;';
@@ -1640,7 +1751,11 @@ function buildPrintableHTML(opts){
       if(st.size) style += `font-size:${st.size}px;`;
       if(st.align) style += `text-align:${st.align};`;
       else if(typeof v === 'number' && isFinite(v)) style += 'text-align:right;';
-      html += `<td style="${style}">${escapeHtml(formatValue(v, st.numFmt))}</td>`;
+      if(img){
+        html += `<td style="${style};text-align:center;padding:2px"><img src="${img}" style="max-height:60px;max-width:100px;vertical-align:middle"></td>`;
+      } else {
+        html += `<td style="${style}">${escapeHtml(formatValue(v, st.numFmt))}</td>`;
+      }
     }
     html += '</tr>';
   }
@@ -1809,10 +1924,17 @@ function renderAll(){
     if(editing && editing.r===r && editing.c===c) return;
     const raw = sheet.cells[id] ?? '';
     const val = computeValue(id, raw, new Set());
-    td.textContent = formatValue(val, sheet.styles[id]?.numFmt);
+    const imgUrl = sheet.images && sheet.images[id];
+    // Сброс классов
     td.className = '';
+    if(imgUrl){
+      td.classList.add('has-img');
+      td.innerHTML = `<img class="cell-img" src="${imgUrl}" alt="">`;
+    } else {
+      td.textContent = formatValue(val, sheet.styles[id]?.numFmt);
+    }
     if(raw.toString().startsWith('=')) td.classList.add('fml');
-    if(typeof val === 'number' && isFinite(val)) td.classList.add('num');
+    if(!imgUrl && typeof val === 'number' && isFinite(val)) td.classList.add('num');
     if(val === '#ОШИБКА!' || val === '#ЦИКЛ!' || val === '#ИМЯ?' || val === '#ДЕЛ/0!')
       td.classList.add('err');
     const st = sheet.styles[id] || {};
@@ -1837,8 +1959,24 @@ function renderAll(){
   });
   updateFormulaBar();
   updateStatus();
+  updateRibbonState();
   positionFillHandle();
   renderCharts();
+}
+function updateRibbonState(){
+  if(currentMode !== 'desktop') return;
+  const id = cellId(sel.r1, sel.c1);
+  const st = sheets[activeSheet].styles[id] || {};
+  const set = (btnId, on) => {
+    const el = document.getElementById(btnId);
+    if(el) el.classList.toggle('active', !!on);
+  };
+  set('rb-bold', st.bold);
+  set('rb-italic', st.italic);
+  set('rb-underline', st.underline);
+  set('rb-al', st.align === 'left');
+  set('rb-ac', st.align === 'center');
+  set('rb-ar', st.align === 'right');
 }
 function updateFormulaBar(){
   const id = cellId(sel.r1, sel.c1);
@@ -1897,14 +2035,20 @@ function beginEdit(r, c, initial){
   const id = cellId(r,c);
   const raw = sheets[activeSheet].cells[id] ?? '';
   td.classList.add('editing');
+  td.setAttribute('contenteditable', 'true');
+  // Убираем картинку на время ввода
+  td.innerHTML = '';
   td.textContent = initial !== undefined ? initial : raw;
-  const range = document.createRange();
-  range.selectNodeContents(td);
-  range.collapse(false);
-  const s = window.getSelection();
-  s.removeAllRanges(); s.addRange(range);
+  try {
+    const range = document.createRange();
+    range.selectNodeContents(td);
+    range.collapse(false);
+    const s = window.getSelection();
+    s.removeAllRanges(); s.addRange(range);
+  } catch(e){}
   td.focus();
-  document.getElementById('statMode').textContent = 'Ввод';
+  const sm = document.getElementById('statMode');
+  if(sm) sm.textContent = 'Ввод';
 }
 function commitEdit(){
   if(!editing) return;
@@ -1915,16 +2059,25 @@ function commitEdit(){
     const sheet = sheets[activeSheet];
     if(text === '') delete sheet.cells[id];
     else sheet.cells[id] = text;
+    td.removeAttribute('contenteditable');
   }
   editing = null;
   pushHistory();
   renderAll();
   save();
-  document.getElementById('statMode').textContent = 'Готово';
+  const sm = document.getElementById('statMode');
+  if(sm) sm.textContent = 'Готово';
 }
-function cancelEdit(){ editing = null; renderAll(); document.getElementById('statMode').textContent='Готово'; }
+function cancelEdit(){
+  if(editing){
+    const td = document.querySelector(`#grid td[data-r="${editing.r}"][data-c="${editing.c}"]`);
+    if(td) td.removeAttribute('contenteditable');
+  }
+  editing = null; renderAll();
+  const sm = document.getElementById('statMode');
+  if(sm) sm.textContent='Готово';
+}
 
-/* Fill handle */
 const fillHandle = document.getElementById('fillHandle');
 const fillPreview = document.getElementById('fillPreview');
 function positionFillHandle(){
@@ -1976,6 +2129,7 @@ function endFill(){
   const srcR1 = f.r1, srcR2 = f.r2, srcC1 = f.c1, srcC2 = f.c2;
   const srcH = srcR2 - srcR1 + 1, srcW = srcC2 - srcC1 + 1;
   const sheet = sheets[activeSheet];
+  if(!sheet.images) sheet.images = {};
   for(let r=r1;r<=r2;r++){
     for(let c=c1;c<=c2;c++){
       if(inSel(r,c,{r1:srcR1,r2:srcR2,c1:srcC1,c2:srcC2})) continue;
@@ -1993,7 +2147,6 @@ function endFill(){
   toast('Автозаполнение');
 }
 
-/* Resize */
 let resizing = null;
 function startColResize(c, e){ resizing={type:'col',c,startX:e.clientX,startW:colWidths[c]||100}; document.body.style.cursor='col-resize'; }
 function startRowResize(r, e){ resizing={type:'row',r,startY:e.clientY,startH:rowHeights[r]||24}; document.body.style.cursor='row-resize'; }
@@ -2014,7 +2167,6 @@ function doResize(e){
 }
 function endResize(){ if(!resizing) return; resizing=null; document.body.style.cursor=''; pushHistory(); save(); }
 
-/* Charts desktop */
 function insertChart(type, rangeStr){
   const s = norm(sel);
   const range = rangeStr || `${cellId(s.r1,s.c1)}:${cellId(s.r2,s.c2)}`;
@@ -2024,8 +2176,8 @@ function insertChart(type, rangeStr){
   const ch = {
     id: 'ch_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
     type, range,
-    x: wrap.scrollLeft + 60,
-    y: wrap.scrollTop + 40,
+    x: (wrap ? wrap.scrollLeft : 0) + 60,
+    y: (wrap ? wrap.scrollTop : 0) + 40,
     w: 400, h: 280
   };
   sheets[activeSheet].charts.push(ch);
@@ -2118,21 +2270,23 @@ function endChartResize(){
   pushHistory(); save();
 }
 
-/* Desktop events */
 function bindDesktopEvents(){
-  document.getElementById('sheetWrap').addEventListener('mousedown', e=>{
-    if(e.target.closest('.chart-box')) return;
-    const td = e.target.closest('#grid td');
-    if(td && !e.target.classList.contains('fill-handle')){
-      if(editing) commitEdit();
-      const r = +td.dataset.r, c = +td.dataset.c;
-      window._desktopDragging = true;
-      if(e.shiftKey){ sel.r2 = r; sel.c2 = c; }
-      else{ sel = {r1:r,c1:c,r2:r,c2:c}; }
-      renderAll();
-      e.preventDefault();
-    }
-  });
+  const sw = document.getElementById('sheetWrap');
+  if(sw){
+    sw.addEventListener('mousedown', e=>{
+      if(e.target.closest('.chart-box')) return;
+      const td = e.target.closest('#grid td');
+      if(td && !e.target.classList.contains('fill-handle')){
+        if(editing) commitEdit();
+        const r = +td.dataset.r, c = +td.dataset.c;
+        window._desktopDragging = true;
+        if(e.shiftKey){ sel.r2 = r; sel.c2 = c; }
+        else{ sel = {r1:r,c1:c,r2:r,c2:c}; }
+        renderAll();
+        e.preventDefault();
+      }
+    });
+  }
   document.addEventListener('mousemove', e=>{
     if(window._desktopDragging){
       const el = document.elementFromPoint(e.clientX, e.clientY);
@@ -2172,7 +2326,7 @@ function bindDesktopKeyboard(){
       }
       return;
     }
-    if(document.activeElement.tagName === 'INPUT'){
+    if(document.activeElement && document.activeElement.tagName === 'INPUT'){
       if(e.key==='Escape') document.activeElement.blur();
       return;
     }
@@ -2219,6 +2373,7 @@ function bindDesktopKeyboard(){
           for(let cc=sel.c1;cc<=sel.c2;cc++){
             const id = cellId(rr,cc);
             delete sheet.cells[id]; delete sheet.styles[id];
+            if(sheet.images) delete sheet.images[id];
           }
         pushHistory(); refreshAll();
         break;
@@ -2229,7 +2384,6 @@ function bindDesktopKeyboard(){
   });
 }
 
-/* Tabs (desktop) */
 function renderTabs(){
   const list = document.getElementById('tabsList');
   if(!list) return;
@@ -2254,18 +2408,23 @@ function renderTabs(){
   });
 }
 
-/* Desktop modals */
 function openFunctionModal(){
-  document.getElementById('modalBg').classList.add('on');
-  document.getElementById('fnArg').focus();
+  const m = document.getElementById('modalBg');
+  if(!m) return;
+  m.classList.add('on');
+  const a = document.getElementById('fnArg');
+  if(a) a.focus();
 }
 function openChartModal(){
   const s = norm(sel);
-  document.getElementById('chartRange').value = `${cellId(s.r1,s.c1)}:${cellId(s.r2,s.c2)}`;
-  document.getElementById('chartModalBg').classList.add('on');
+  const inp = document.getElementById('chartRange');
+  if(inp) inp.value = `${cellId(s.r1,s.c1)}:${cellId(s.r2,s.c2)}`;
+  const m = document.getElementById('chartModalBg');
+  if(m) m.classList.add('on');
 }
 function openPrintModal(){
-  document.getElementById('printModalBg').classList.add('on');
+  const m = document.getElementById('printModalBg');
+  if(m) m.classList.add('on');
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -2317,10 +2476,16 @@ function renderMobileAll(){
     if(editing && editing.r===r && editing.c===c) return;
     const raw = sheet.cells[id] ?? '';
     const val = computeValue(id, raw, new Set());
-    td.textContent = formatValue(val, sheet.styles[id]?.numFmt);
+    const imgUrl = sheet.images && sheet.images[id];
     td.className = '';
+    if(imgUrl){
+      td.classList.add('has-img');
+      td.innerHTML = `<img class="cell-img" src="${imgUrl}" alt="">`;
+    } else {
+      td.textContent = formatValue(val, sheet.styles[id]?.numFmt);
+    }
     if(raw.toString().startsWith('=')) td.classList.add('fml');
-    if(typeof val === 'number' && isFinite(val)) td.classList.add('num');
+    if(!imgUrl && typeof val === 'number' && isFinite(val)) td.classList.add('num');
     if(val === '#ОШИБКА!' || val === '#ЦИКЛ!' || val === '#ИМЯ?' || val === '#ДЕЛ/0!')
       td.classList.add('err');
     const st = sheet.styles[id] || {};
@@ -2387,7 +2552,6 @@ function renderMobileSheets(){
   box.appendChild(add);
 }
 
-/* Mobile charts */
 function renderMobileCharts(){
   const container = document.getElementById('mGridInner');
   if(!container) return;
@@ -2422,10 +2586,10 @@ function renderMobileCharts(){
   });
 }
 
-/* Mobile sheet content */
 function openMobileSheet(title, content){
   const bg = document.getElementById('mSheetBg');
   const box = document.getElementById('mSheetContent');
+  if(!bg || !box) return;
   box.innerHTML = '';
   if(title){
     const t = document.createElement('div');
@@ -2437,7 +2601,8 @@ function openMobileSheet(title, content){
   bg.classList.add('on');
 }
 function closeMobileSheet(){
-  document.getElementById('mSheetBg').classList.remove('on');
+  const bg = document.getElementById('mSheetBg');
+  if(bg) bg.classList.remove('on');
 }
 function mobileMenuItem(icon, label, sub, action, danger){
   const item = document.createElement('div');
@@ -2447,11 +2612,11 @@ function mobileMenuItem(icon, label, sub, action, danger){
   return item;
 }
 
-/* Mobile edit overlay */
 function openMobileEdit(r, c, initial){
   editing = { r, c };
   const overlay = document.getElementById('mEditOverlay');
   const inp = document.getElementById('mEditInput');
+  if(!overlay || !inp) return;
   const id = cellId(r,c);
   const raw = sheets[activeSheet].cells[id] ?? '';
   inp.value = initial !== undefined ? initial : raw;
@@ -2464,6 +2629,7 @@ function openMobileEdit(r, c, initial){
 }
 function closeMobileEdit(commit){
   const inp = document.getElementById('mEditInput');
+  if(!inp) return;
   if(commit && editing){
     const id = cellId(editing.r, editing.c);
     const text = inp.value;
@@ -2473,11 +2639,11 @@ function closeMobileEdit(commit){
     pushHistory();
   }
   editing = null;
-  document.getElementById('mEditOverlay').classList.remove('on');
+  const ov = document.getElementById('mEditOverlay');
+  if(ov) ov.classList.remove('on');
   refreshAll();
 }
 
-/* Mobile events */
 function bindMobileEvents(){
   const gridWrap = document.getElementById('mGridWrap');
   if(!gridWrap) return;
@@ -2495,37 +2661,34 @@ function bindMobileEvents(){
     openMobileEdit(+td.dataset.r, +td.dataset.c);
   });
 
-  // top bar
-  document.getElementById('mMenuBtn').onclick = ()=>openMobileMenu();
-  document.getElementById('mStyleBtn').onclick = ()=>openMobileStyles();
-  document.getElementById('mFxBtn').onclick = ()=>{
-    const s = norm(sel);
-    openFunctionModalMobile();
-  };
+  const menuBtn = document.getElementById('mMenuBtn');
+  if(menuBtn) menuBtn.onclick = ()=>openMobileMenu();
+  const styleBtn = document.getElementById('mStyleBtn');
+  if(styleBtn) styleBtn.onclick = ()=>openMobileStyles();
+  const fxBtn = document.getElementById('mFxBtn');
+  if(fxBtn) fxBtn.onclick = ()=>openFunctionModalMobile();
 
-  // formula input
   const fi = document.getElementById('mFormulaInput');
-  fi.addEventListener('focus', ()=>{
-    const id = cellId(sel.r1, sel.c1);
-    fi.value = sheets[activeSheet].cells[id] ?? '';
-  });
-  fi.addEventListener('keydown', e=>{
-    if(e.key === 'Enter'){
-      e.preventDefault();
+  if(fi){
+    fi.addEventListener('focus', ()=>{
       const id = cellId(sel.r1, sel.c1);
-      const sheet = sheets[activeSheet];
-      const val = fi.value;
-      if(val === '') delete sheet.cells[id];
-      else sheet.cells[id] = val;
-      pushHistory(); refreshAll();
-      fi.blur();
-    } else if(e.key === 'Escape'){ fi.blur(); }
-  });
-  fi.addEventListener('blur', ()=>{
-    updateMobileFormulaBar();
-  });
+      fi.value = sheets[activeSheet].cells[id] ?? '';
+    });
+    fi.addEventListener('keydown', e=>{
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        const id = cellId(sel.r1, sel.c1);
+        const sheet = sheets[activeSheet];
+        const val = fi.value;
+        if(val === '') delete sheet.cells[id];
+        else sheet.cells[id] = val;
+        pushHistory(); refreshAll();
+        fi.blur();
+      } else if(e.key === 'Escape'){ fi.blur(); }
+    });
+    fi.addEventListener('blur', ()=>{ updateMobileFormulaBar(); });
+  }
 
-  // bottom bar
   document.querySelectorAll('.m-bb').forEach(btn=>{
     btn.onclick = ()=>{
       const action = btn.dataset.action;
@@ -2540,20 +2703,24 @@ function bindMobileEvents(){
     };
   });
 
-  // edit overlay
-  document.getElementById('mEditCancel').onclick = ()=>closeMobileEdit(false);
-  document.getElementById('mEditOk').onclick = ()=>closeMobileEdit(true);
-  document.getElementById('mEditInput').addEventListener('keydown', e=>{
+  const ec = document.getElementById('mEditCancel');
+  if(ec) ec.onclick = ()=>closeMobileEdit(false);
+  const eo = document.getElementById('mEditOk');
+  if(eo) eo.onclick = ()=>closeMobileEdit(true);
+  const ei = document.getElementById('mEditInput');
+  if(ei) ei.addEventListener('keydown', e=>{
     if(e.key === 'Enter'){ e.preventDefault(); closeMobileEdit(true); }
     else if(e.key === 'Escape'){ e.preventDefault(); closeMobileEdit(false); }
   });
 
-  // sheet bg
-  document.getElementById('mSheetBg').onclick = closeMobileSheet;
+  const bg = document.getElementById('mSheetBg');
+  if(bg) bg.onclick = closeMobileSheet;
 }
 
 function openMobileMenu(){
   openMobileSheet('Меню', box => {
+    box.appendChild(mobileMenuItem('🖼', 'Вставить картинку', 'В выделенную ячейку', ()=>insertImageIntoCell()));
+    box.appendChild(mobileMenuItem('✖', 'Убрать картинку', 'Из выделенных ячеек', ()=>clearImageFromCell()));
     box.appendChild(mobileMenuItem('📊', 'Вставить диаграмму', 'Столбчатая, линейная, круговая', ()=>openMobileChartMenu()));
     box.appendChild(mobileMenuItem('🖨', 'Печать', 'CSV, PDF через печать', ()=>openPrintModal()));
     box.appendChild(mobileMenuItem('⬇', 'Экспорт CSV', 'Скачать таблицу', ()=>exportCSV()));
@@ -2575,10 +2742,11 @@ function openMobileMenu(){
         const id = cellId(r,c);
         delete sheets[activeSheet].cells[id];
         delete sheets[activeSheet].styles[id];
+        if(sheets[activeSheet].images) delete sheets[activeSheet].images[id];
       }
       pushHistory(); refreshAll();
     }));
-    box.appendChild(mobileMenuItem('⚙️', 'Сменить версию', 'На компьютерную', ()=>chooseMode(null)));
+    box.appendChild(mobileMenuItem('⚙️', 'Сменить версию', 'На компьютерную', ()=>chooseMode('desktop')));
     box.appendChild(mobileMenuItem('🗑', 'Сбросить лист', 'Удалить всё содержимое', ()=>{
       if(!confirm('Очистить лист? Действие можно отменить.')) return;
       sheets[activeSheet] = newSheet();
@@ -2704,7 +2872,7 @@ function openMobileMore(){
     box.appendChild(mobileMenuItem('🖨', 'Печать', '', ()=>openPrintModal()));
     box.appendChild(mobileMenuItem('⬇', 'Экспорт CSV', '', ()=>exportCSV()));
     box.appendChild(mobileMenuItem('⬇', 'Экспорт JSON', '', ()=>exportJSON()));
-    box.appendChild(mobileMenuItem('🖥️', 'Компьютерная версия', 'Сменить режим', ()=>chooseMode(null)));
+    box.appendChild(mobileMenuItem('🖥️', 'Компьютерная версия', 'Сменить режим', ()=>chooseMode('desktop')));
     box.appendChild(mobileMenuItem('🗑', 'Сбросить лист', '', ()=>{
       if(!confirm('Очистить лист?')) return;
       sheets[activeSheet] = newSheet();
@@ -2715,84 +2883,111 @@ function openMobileMore(){
 
 function openFunctionModalMobile(){
   const bg = document.getElementById('modalBg');
+  if(!bg) return;
   bg.classList.add('on');
-  document.getElementById('fnArg').focus();
+  const a = document.getElementById('fnArg');
+  if(a) a.focus();
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ═══════════ ВЫБОР РЕЖИМА И СТАРТОВЫЙ ЭКРАН ═══════════
+   ВЫБОР РЕЖИМА И СТАРТОВЫЙ ЭКРАН
    ══════════════════════════════════════════════════════════════ */
 function chooseMode(mode){
-  document.getElementById('startScreen').style.display = 'none';
-  document.getElementById('switchVersion').style.display = 'flex';
-  document.getElementById('desktopApp').classList.toggle('on', mode === 'desktop');
-  document.getElementById('mobileApp').classList.toggle('on', mode === 'mobile');
+  if(mode !== 'desktop' && mode !== 'mobile') mode = 'desktop';
+  const ss = document.getElementById('startScreen');
+  if(ss) ss.style.display = 'none';
+  const sv = document.getElementById('switchVersion');
+  if(sv) sv.style.display = 'flex';
+  const da = document.getElementById('desktopApp');
+  if(da) da.classList.toggle('on', mode === 'desktop');
+  const ma = document.getElementById('mobileApp');
+  if(ma) ma.classList.toggle('on', mode === 'mobile');
   currentMode = mode;
-  document.getElementById('switchText').textContent = mode === 'desktop' ? '📱 Мобильная' : '🖥️ ПК';
-  // Init both so switching is fast
+  const stxt = document.getElementById('switchText');
+  if(stxt) stxt.textContent = mode === 'desktop' ? '📱 Мобильная' : '🖥️ ПК';
   if(mode === 'desktop'){
     buildTable(); renderAll(); renderTabs();
   }else{
     buildMobileTable(); renderMobileAll(); renderMobileSheets();
   }
-  const remember = document.getElementById('rememberChoice').checked;
-  if(remember){
-    localStorage.setItem(MODE_KEY, mode);
-    localStorage.setItem(MODE_KEY_REMEMBER, '1');
-  }else{
-    localStorage.removeItem(MODE_KEY);
-    localStorage.removeItem(MODE_KEY_REMEMBER);
-  }
+  const rc = document.getElementById('rememberChoice');
+  const remember = rc ? rc.checked : false;
+  try {
+    if(remember){
+      localStorage.setItem(MODE_KEY, mode);
+      localStorage.setItem(MODE_KEY_REMEMBER, '1');
+    }else{
+      localStorage.removeItem(MODE_KEY);
+      localStorage.removeItem(MODE_KEY_REMEMBER);
+    }
+  } catch(e){}
 }
 
 function showStartScreen(){
-  document.getElementById('startScreen').style.display = 'flex';
-  document.getElementById('switchVersion').style.display = 'none';
-  document.getElementById('desktopApp').classList.remove('on');
-  document.getElementById('mobileApp').classList.remove('on');
-  const remember = localStorage.getItem(MODE_KEY_REMEMBER) === '1';
-  document.getElementById('rememberChoice').checked = remember;
+  const ss = document.getElementById('startScreen');
+  if(ss) ss.style.display = 'flex';
+  const sv = document.getElementById('switchVersion');
+  if(sv) sv.style.display = 'none';
+  const da = document.getElementById('desktopApp');
+  if(da) da.classList.remove('on');
+  const ma = document.getElementById('mobileApp');
+  if(ma) ma.classList.remove('on');
+  let remember = false;
+  try { remember = localStorage.getItem(MODE_KEY_REMEMBER) === '1'; } catch(e){}
+  const rc = document.getElementById('rememberChoice');
+  if(rc) rc.checked = remember;
 }
 
-/* Start screen buttons */
 document.querySelectorAll('.start-choice').forEach(btn => {
   btn.onclick = ()=>chooseMode(btn.dataset.mode);
 });
 
-document.getElementById('switchVersion').onclick = ()=>{
+const svBtn = document.getElementById('switchVersion');
+if(svBtn) svBtn.onclick = ()=>{
   const next = currentMode === 'desktop' ? 'mobile' : 'desktop';
   chooseMode(next);
   toast(next === 'mobile' ? '📱 Мобильная версия' : '🖥️ Компьютерная версия');
 };
 
-/* Modal events (общие) */
-document.getElementById('fnCancel').onclick = ()=>document.getElementById('modalBg').classList.remove('on');
-document.getElementById('fnOk').onclick = ()=>{
+/* Modal events */
+const fnCancel = document.getElementById('fnCancel');
+if(fnCancel) fnCancel.onclick = ()=>{ const m = document.getElementById('modalBg'); if(m) m.classList.remove('on'); };
+const fnOk = document.getElementById('fnOk');
+if(fnOk) fnOk.onclick = ()=>{
   const fn = document.getElementById('fnSelect').value;
   const arg = document.getElementById('fnArg').value.trim();
   sheets[activeSheet].cells[cellId(sel.r1, sel.c1)] = `=${fn}(${arg})`;
-  document.getElementById('modalBg').classList.remove('on');
+  const m = document.getElementById('modalBg'); if(m) m.classList.remove('on');
   pushHistory(); refreshAll();
 };
-document.getElementById('modalBg').onclick = e=>{ if(e.target===document.getElementById('modalBg')) e.target.classList.remove('on'); };
+const modalBg = document.getElementById('modalBg');
+if(modalBg) modalBg.onclick = e=>{ if(e.target===modalBg) e.target.classList.remove('on'); };
 
-document.getElementById('chartCancel').onclick = ()=>document.getElementById('chartModalBg').classList.remove('on');
-document.getElementById('chartOk').onclick = ()=>{
+const chartCancel = document.getElementById('chartCancel');
+if(chartCancel) chartCancel.onclick = ()=>{ const m = document.getElementById('chartModalBg'); if(m) m.classList.remove('on'); };
+const chartOk = document.getElementById('chartOk');
+if(chartOk) chartOk.onclick = ()=>{
   const range = document.getElementById('chartRange').value.trim();
-  const type = document.querySelector('.chart-opt.selected').dataset.type;
+  const selOpt = document.querySelector('.chart-opt.selected');
+  const type = selOpt ? selOpt.dataset.type : 'bar';
   insertChart(type, range);
-  document.getElementById('chartModalBg').classList.remove('on');
+  const m = document.getElementById('chartModalBg'); if(m) m.classList.remove('on');
 };
-document.getElementById('chartModalBg').onclick = e=>{ if(e.target===document.getElementById('chartModalBg')) e.target.classList.remove('on'); };
-document.getElementById('chartPicker').addEventListener('click', e=>{
+const chartModalBg = document.getElementById('chartModalBg');
+if(chartModalBg) chartModalBg.onclick = e=>{ if(e.target===chartModalBg) e.target.classList.remove('on'); };
+const chartPicker = document.getElementById('chartPicker');
+if(chartPicker) chartPicker.addEventListener('click', e=>{
   const opt = e.target.closest('.chart-opt');
   if(!opt) return;
   document.querySelectorAll('.chart-opt').forEach(el=>el.classList.toggle('selected', el === opt));
 });
 
-document.getElementById('printCancel').onclick = ()=>document.getElementById('printModalBg').classList.remove('on');
-document.getElementById('printModalBg').onclick = e=>{ if(e.target===document.getElementById('printModalBg')) e.target.classList.remove('on'); };
-document.getElementById('printGo').onclick = ()=>{
+const printCancel = document.getElementById('printCancel');
+if(printCancel) printCancel.onclick = ()=>{ const m = document.getElementById('printModalBg'); if(m) m.classList.remove('on'); };
+const printModalBg = document.getElementById('printModalBg');
+if(printModalBg) printModalBg.onclick = e=>{ if(e.target===printModalBg) e.target.classList.remove('on'); };
+const printGo = document.getElementById('printGo');
+if(printGo) printGo.onclick = ()=>{
   const opts = {
     orientation: document.getElementById('printOrient').value,
     scale: parseFloat(document.getElementById('printScale').value),
@@ -2800,10 +2995,11 @@ document.getElementById('printGo').onclick = ()=>{
     charts: document.getElementById('printCharts').checked,
     headers: document.getElementById('printHeaders').checked,
   };
-  document.getElementById('printModalBg').classList.remove('on');
+  const m = document.getElementById('printModalBg'); if(m) m.classList.remove('on');
   setTimeout(()=>printSheet(opts), 100);
 };
-document.getElementById('printPreview').onclick = ()=>{
+const printPreview = document.getElementById('printPreview');
+if(printPreview) printPreview.onclick = ()=>{
   const opts = {
     orientation: document.getElementById('printOrient').value,
     scale: parseFloat(document.getElementById('printScale').value),
@@ -2841,9 +3037,16 @@ document.getElementById('printPreview').onclick = ()=>{
   }, 100);
 };
 
-/* Desktop ribbon buttons */
+/* Desktop ribbon */
 function bindDesktopRibbon(){
-  const bind = (id, fn) => { const el = document.getElementById(id); if(el) el.onclick = fn; };
+  const bind = (id, fn) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.onclick = (e)=>{
+      if(editing && currentMode === 'desktop'){ commitEdit(); }
+      fn(e);
+    };
+  };
   bind('rb-bold', ()=>toggleStyle('bold'));
   bind('rb-italic', ()=>toggleStyle('italic'));
   bind('rb-underline', ()=>toggleStyle('underline'));
@@ -2871,7 +3074,7 @@ function bindDesktopRibbon(){
   });
   const ff = document.getElementById('rb-font'); if(ff) ff.onchange = e=>applyStyle({font:e.target.value});
   const fs = document.getElementById('rb-size'); if(fs) fs.onchange = e=>applyStyle({size:+e.target.value});
-  const fn = document.getElementById('rb-numfmt'); if(fn) fn.onchange = e=>applyStyle({numFmt:e.target.value});
+  const nf = document.getElementById('rb-numfmt'); if(nf) nf.onchange = e=>applyStyle({numFmt:e.target.value});
   bind('rb-copy', doCopy);
   bind('rb-cut', doCut);
   bind('rb-paste', doPaste);
@@ -2881,11 +3084,16 @@ function bindDesktopRibbon(){
     sheets[activeSheet].cells[cellId(s.r2+1, s.c1)] = `=SUM(${cellId(s.r1,s.c1)}:${cellId(s.r2,s.c2)})`;
     pushHistory(); refreshAll();
     selectCell(s.r2+1, s.c1);
+    toast('Сумма вставлена');
   });
-  bind('rb-insert-row', ()=>{ const s=norm(sel); for(let r=s.r2;r>=s.r1;r--) insertRow(r); pushHistory(); refreshAll(); });
-  bind('rb-insert-col', ()=>{ const s=norm(sel); for(let c=s.c2;c>=s.c1;c--) insertCol(c); pushHistory(); refreshAll(); });
-  bind('rb-del-row', ()=>{ const s=norm(sel); for(let r=s.r2;r>=s.r1;r--) deleteRow(r); pushHistory(); refreshAll(); });
-  bind('rb-del-col', ()=>{ const s=norm(sel); for(let c=s.c2;c>=s.c1;c--) deleteCol(c); pushHistory(); refreshAll(); });
+  bind('rb-insert-row', ()=>{ const s=norm(sel); for(let r=s.r2;r>=s.r1;r--) insertRow(r); pushHistory(); refreshAll(); toast('Строка вставлена'); });
+  bind('rb-insert-col', ()=>{ const s=norm(sel); for(let c=s.c2;c>=s.c1;c--) insertCol(c); pushHistory(); refreshAll(); toast('Столбец вставлен'); });
+  bind('rb-del-row',   ()=>{ const s=norm(sel); for(let r=s.r2;r>=s.r1;r--) deleteRow(r); pushHistory(); refreshAll(); toast('Строка удалена'); });
+  bind('rb-del-col',   ()=>{ const s=norm(sel); for(let c=s.c2;c>=s.c1;c--) deleteCol(c); pushHistory(); refreshAll(); toast('Столбец удалён'); });
+  // Картинки
+  bind('rb-image', insertImageIntoCell);
+  bind('rb-image-clear', clearImageFromCell);
+  // Диаграммы
   bind('rb-chart-bar', ()=>insertChart('bar'));
   bind('rb-chart-line', ()=>insertChart('line'));
   bind('rb-chart-pie', ()=>insertChart('pie'));
@@ -2897,6 +3105,7 @@ function bindDesktopRibbon(){
     if(!confirm('Сбросить весь лист?')) return;
     sheets[activeSheet] = newSheet();
     pushHistory(); refreshAll();
+    toast('Лист очищен');
   });
   const fxBtn = document.getElementById('fxBtn'); if(fxBtn) fxBtn.onclick = openFunctionModal;
   const rbFx = document.getElementById('rb-fx'); if(rbFx) rbFx.onclick = openFunctionModal;
@@ -2910,7 +3119,8 @@ function bindDesktopRibbon(){
           const td = document.querySelector(`#grid td[data-r="${p.r}"][data-c="${p.c}"]`);
           if(td) td.scrollIntoView({block:'nearest', inline:'nearest'});
         }
-        document.getElementById('formulaInput').focus();
+        const fi = document.getElementById('formulaInput');
+        if(fi) fi.focus();
       }
     });
   }
@@ -2941,9 +3151,10 @@ function bindDesktopRibbon(){
   if(tabPrev) tabPrev.onclick = ()=>{ if(activeSheet > 0){ activeSheet--; refreshAll(); } };
   const tabNext = document.getElementById('tabNext');
   if(tabNext) tabNext.onclick = ()=>{ if(activeSheet < sheets.length-1){ activeSheet++; refreshAll(); } };
-  // Menubar
+
   document.querySelectorAll('.m-item').forEach(el=>{
-    el.onclick = ()=>{
+    el.onclick = (e)=>{
+      e.stopPropagation();
       const m = el.dataset.menu;
       if(m === 'file') showDesktopMenu(el, [
         { label:'🖨 Печать…', kbd:'Ctrl+P', act: openPrintModal },
@@ -2966,6 +3177,9 @@ function bindDesktopRibbon(){
         { label:'Вставить', kbd:'Ctrl+V', act: doPaste },
       ]);
       else if(m === 'insert') showDesktopMenu(el, [
+        { label:'🖼 Картинка', act: insertImageIntoCell },
+        { label:'✖ Убрать картинку', act: clearImageFromCell },
+        { sep:true },
         { label:'📊 Столбчатая', act: ()=>insertChart('bar') },
         { label:'📈 Линейная', act: ()=>insertChart('line') },
         { label:'🥧 Круговая', act: ()=>insertChart('pie') },
@@ -2982,6 +3196,7 @@ function bindDesktopRibbon(){
       else if(m === 'data') showDesktopMenu(el, [
         { label:'Автосумма', act: ()=>{
           const s=norm(sel);
+          if(s.r2+1 >= ROWS) return toast('Нельзя вставить ниже');
           sheets[activeSheet].cells[cellId(s.r2+1,s.c1)] = `=SUM(${cellId(s.r1,s.c1)}:${cellId(s.r2,s.c2)})`;
           pushHistory(); refreshAll();
         }},
@@ -2991,6 +3206,7 @@ function bindDesktopRibbon(){
 }
 function showDesktopMenu(anchorEl, items){
   const ctx = document.getElementById('ctxMenu');
+  if(!ctx) return;
   ctx.innerHTML = '';
   items.forEach(it=>{
     if(it.sep){
@@ -3000,7 +3216,7 @@ function showDesktopMenu(anchorEl, items){
     const d = document.createElement('div');
     d.className = 'it';
     d.innerHTML = `<span>${it.label}</span>${it.kbd ? `<span class="kbd">${it.kbd}</span>` : ''}`;
-    d.onclick = ()=>{ ctx.classList.remove('on'); it.act(); };
+    d.onclick = (e)=>{ e.stopPropagation(); ctx.classList.remove('on'); it.act(); };
     ctx.appendChild(d);
   });
   const r = anchorEl.getBoundingClientRect();
@@ -3008,6 +3224,165 @@ function showDesktopMenu(anchorEl, items){
   ctx.style.left = r.left + 'px';
   ctx.style.top = r.bottom + 'px';
 }
+
+/* ══════════════════════════════════════════════════════════════
+   PWA — иконки, манифест, подсказка установки
+   ══════════════════════════════════════════════════════════════ */
+function generateAppIcon(size){
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+
+  const g = ctx.createLinearGradient(0, 0, size, size);
+  g.addColorStop(0, '#185c37');
+  g.addColorStop(0.45, '#217346');
+  g.addColorStop(1, '#2d8f5b');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+
+  const pad = size * 0.2;
+  const r = size * 0.16;
+  const x = pad, y = pad, w = size - pad*2, h = size - pad*2;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y,   x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x,   y+h, r);
+  ctx.arcTo(x,   y+h, x,   y,   r);
+  ctx.arcTo(x,   y,   x+w, y,   r);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#217346';
+  ctx.font = 'bold ' + Math.round(size*0.4) + 'px "Segoe UI", Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('N', size/2, size/2 + size*0.02);
+
+  return c.toDataURL('image/png');
+}
+
+(function setIcons(){
+  try {
+    const url180 = generateAppIcon(180);
+    const url152 = generateAppIcon(152);
+    const url120 = generateAppIcon(120);
+    const url32  = generateAppIcon(32);
+    const el180 = document.getElementById('appleIcon');
+    const el152 = document.getElementById('appleIcon152');
+    const el120 = document.getElementById('appleIcon120');
+    const elFav = document.getElementById('favicon');
+    if(el180) el180.href = url180;
+    if(el152) el152.href = url152;
+    if(el120) el120.href = url120;
+    if(elFav) elFav.href = url32;
+  } catch(e){}
+})();
+
+(function setManifest(){
+  try {
+    const manifest = {
+      name: 'Nitpad.ГЛК',
+      short_name: 'Nitpad',
+      description: 'Электронные таблицы с формулами, диаграммами и печатью',
+      start_url: '.',
+      scope: '.',
+      display: 'standalone',
+      orientation: 'any',
+      background_color: '#217346',
+      theme_color: '#217346',
+      lang: 'ru',
+      icons: [
+        { src: generateAppIcon(192), sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: generateAppIcon(512), sizes: '512x512', type: 'image/png', purpose: 'any' },
+        { src: generateAppIcon(180), sizes: '180x180', type: 'image/png', purpose: 'apple touch icon' }
+      ]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = url;
+    document.head.appendChild(link);
+  } catch(e){}
+})();
+
+function maybeShowIosInstallHint(){
+  const isStandalone =
+    window.navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
+  if(isStandalone) return;
+
+  const ua = navigator.userAgent;
+  const isIos = /iPad|iPhone|iPod/.test(ua) || (ua.includes('Mac') && 'ontouchend' in document);
+  const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+  if(!isIos || !isSafari) return;
+
+  try {
+    const last = +localStorage.getItem('nitpad_ios_hint') || 0;
+    if(Date.now() - last < 30 * 24 * 3600 * 1000) return;
+  } catch(e){}
+
+  setTimeout(() => {
+    if(document.getElementById('iosInstallHint')) return;
+    const banner = document.createElement('div');
+    banner.id = 'iosInstallHint';
+    banner.innerHTML = `
+      <div style="position:fixed; left:12px; right:12px; bottom:12px; z-index:9999;
+                  background:#fff; border-radius:14px; padding:14px 16px;
+                  box-shadow:0 12px 40px rgba(0,0,0,.25);
+                  font-family:'Segoe UI',Tahoma,sans-serif; font-size:13px;
+                  color:#212121; display:flex; align-items:flex-start; gap:12px;
+                  padding-bottom:calc(14px + env(safe-area-inset-bottom, 0px));
+                  animation:iosHintIn .35s cubic-bezier(.2,.9,.3,1);">
+        <div style="font-size:28px; line-height:1;">📲</div>
+        <div style="flex:1;">
+          <div style="font-weight:700; color:#185c37; margin-bottom:4px;">
+            Установить как приложение
+          </div>
+          <div style="color:#616161; line-height:1.45;">
+            Нажмите <b style="color:#217346;">Поделиться</b>
+            <span style="display:inline-block;padding:0 4px;">⬆️</span>
+            и выберите <b style="color:#217346;">«На экран Домой»</b>.
+          </div>
+        </div>
+        <button id="iosHintClose" style="background:transparent; border:none;
+                font-size:20px; color:#9e9e9e; padding:0; line-height:1;
+                cursor:pointer; width:24px; height:24px;">×</button>
+      </div>
+      <style>
+        @keyframes iosHintIn {
+          from { transform: translateY(20px); opacity: 0; }
+          to   { transform: translateY(0);    opacity: 1; }
+        }
+      </style>
+    `;
+    document.body.appendChild(banner);
+
+    const close = () => {
+      const el = document.getElementById('iosInstallHint');
+      if(el) el.remove();
+      try { localStorage.setItem('nitpad_ios_hint', String(Date.now())); } catch(e){}
+    };
+    const bc = document.getElementById('iosHintClose');
+    if(bc) bc.onclick = close;
+    setTimeout(() => { if(document.body.contains(banner)) close(); }, 20000);
+  }, 3000);
+}
+
+(function detectStandalone(){
+  const isStandalone =
+    window.navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
+  if(isStandalone){
+    try {
+      if(!localStorage.getItem(MODE_KEY)){
+        localStorage.setItem(MODE_KEY, 'mobile');
+        localStorage.setItem(MODE_KEY_REMEMBER, '1');
+      }
+    } catch(e){}
+  }
+})();
 
 /* ══════════════════════════════════════════════════════════════
    ЗАПУСК
@@ -3019,7 +3394,6 @@ function boot(){
   bindDesktopRibbon();
   bindMobileEvents();
 
-  // Context menu (desktop)
   document.addEventListener('contextmenu', e=>{
     if(currentMode !== 'desktop') return;
     const chartBox = e.target.closest('.chart-box');
@@ -3042,17 +3416,23 @@ function boot(){
     if(!inSel(+td.dataset.r, +td.dataset.c, norm(sel))){
       selectCell(+td.dataset.r, +td.dataset.c);
     }
+    const id = cellId(+td.dataset.r, +td.dataset.c);
+    const hasImg = sheets[activeSheet].images && sheets[activeSheet].images[id];
     showDesktopMenuAt(e.clientX, e.clientY, [
       { label:'Копировать', kbd:'Ctrl+C', act: doCopy },
       { label:'Вырезать', kbd:'Ctrl+X', act: doCut },
       { label:'Вставить', kbd:'Ctrl+V', act: doPaste, disabled: !clipboard },
       { sep:true },
+      { label:'🖼 Вставить картинку', act: insertImageIntoCell },
+      { label:'✖ Убрать картинку', act: clearImageFromCell, disabled: !hasImg },
+      { sep:true },
       { label:'Очистить', kbd:'Del', act: ()=>{
         const s=norm(sel);
         for(let r=s.r1;r<=s.r2;r++) for(let c=s.c1;c<=s.c2;c++){
-          const id = cellId(r,c);
-          delete sheets[activeSheet].cells[id];
-          delete sheets[activeSheet].styles[id];
+          const cid = cellId(r,c);
+          delete sheets[activeSheet].cells[cid];
+          delete sheets[activeSheet].styles[cid];
+          if(sheets[activeSheet].images) delete sheets[activeSheet].images[cid];
         }
         pushHistory(); refreshAll();
       }},
@@ -3066,29 +3446,39 @@ function boot(){
       { label:'Удалить столбец', act: ()=>{ const s=norm(sel); for(let c=s.c2;c>=s.c1;c--) deleteCol(c); pushHistory(); refreshAll(); }},
     ]);
   });
-  document.addEventListener('click', ()=>{
+
+  document.addEventListener('click', (e)=>{
     const ctx = document.getElementById('ctxMenu');
-    if(ctx) ctx.classList.remove('on');
+    if(!ctx) return;
+    const t = e.target;
+    if(t && t.closest && (t.closest('.ctx-menu') || t.closest('.m-item'))) return;
+    ctx.classList.remove('on');
   });
 
-  // Показываем стартовый экран или сразу режим
-  const remembered = localStorage.getItem(MODE_KEY);
-  const rememberOn = localStorage.getItem(MODE_KEY_REMEMBER) === '1';
+  let remembered = null, rememberOn = false;
+  try {
+    remembered = localStorage.getItem(MODE_KEY);
+    rememberOn = localStorage.getItem(MODE_KEY_REMEMBER) === '1';
+  } catch(e){}
   if(rememberOn && remembered){
-    document.getElementById('rememberChoice').checked = true;
+    const rc = document.getElementById('rememberChoice');
+    if(rc) rc.checked = true;
     chooseMode(remembered);
   }else{
     showStartScreen();
   }
 
-  // Клик по стартовому экрану (по фону) — ничего
   window.addEventListener('resize', ()=>{
     if(currentMode === 'desktop'){ positionFillHandle(); renderCharts(); }
     else if(currentMode === 'mobile'){ renderMobileCharts(); }
   });
+
+  // Показ баннера установки для iOS
+  maybeShowIosInstallHint();
 }
 function showDesktopMenuAt(x, y, items){
   const ctx = document.getElementById('ctxMenu');
+  if(!ctx) return;
   ctx.innerHTML = '';
   items.forEach(it=>{
     if(it.sep){
@@ -3098,7 +3488,7 @@ function showDesktopMenuAt(x, y, items){
     const d = document.createElement('div');
     d.className = 'it' + (it.disabled ? ' disabled' : '');
     d.innerHTML = `<span>${it.label}</span>${it.kbd ? `<span class="kbd">${it.kbd}</span>` : ''}`;
-    if(!it.disabled) d.onclick = ()=>{ ctx.classList.remove('on'); it.act(); };
+    if(!it.disabled) d.onclick = (e)=>{ e.stopPropagation(); ctx.classList.remove('on'); it.act(); };
     ctx.appendChild(d);
   });
   ctx.classList.add('on');
